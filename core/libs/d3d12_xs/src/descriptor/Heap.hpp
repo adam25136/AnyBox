@@ -53,6 +53,8 @@ private:
     Device* device;
     Vulkan::Buffer* buffer;
     PrivateDataSlot privateData;
+    DescriptorLease* lease = nullptr;
+    [[maybe_unused]] std::uint64_t reservedLease = 0;
 };
 static_assert(std::is_standard_layout_v<DescriptorHeap>);
 static_assert(DescriptorHeap::GetVtableOffset() == 0);

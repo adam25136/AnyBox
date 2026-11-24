@@ -1,5 +1,7 @@
 add_library(anybox_shader_runtime STATIC src/runtime/ComputePipeline.cpp src/runtime/Requirements.cpp)
+target_sources(anybox_shader_runtime PRIVATE src/runtime/RootResources.cpp src/runtime/RootTables.cpp)
 target_link_libraries(anybox_shader_runtime PUBLIC anybox_shader_artifact anybox_vulkan)
+target_link_libraries(anybox_shader_runtime PUBLIC anybox_shader_arguments anybox_buffer_addresses)
 target_include_directories(anybox_shader_runtime PUBLIC include)
 target_include_directories(anybox_shader_runtime SYSTEM PRIVATE "${PROJECT_SOURCE_DIR}/3rdparty/SPIRV-Headers/include")
 

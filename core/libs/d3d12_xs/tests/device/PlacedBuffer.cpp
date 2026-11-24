@@ -47,6 +47,7 @@ void AnyBox::Graphics::Tests::CheckPlacedBuffer(Device* device) {
     CheckPlacedBufferTransfer(device, resource, {address, 2 * page}, false);
     CheckResourceMetadata(device, resource);
     CheckBufferViews(device, resource);
+    CheckShaderBufferArguments(device, resource);
     auto properties = Method<decltype(&Resource::GetHeapProperties)>(resource, 14);
     D3D12_HEAP_PROPERTIES heap{};
     Reject<std::invalid_argument>([&] { properties(resource, nullptr, nullptr); });

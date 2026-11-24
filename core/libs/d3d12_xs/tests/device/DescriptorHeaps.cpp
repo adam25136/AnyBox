@@ -1,6 +1,7 @@
 #include "Tests.hpp"
 #include "../../src/descriptor/Heap.hpp"
 #include <anybox/vulkan/MemoryTest.hpp>
+#include <algorithm>
 
 void AnyBox::Graphics::Tests::CheckDescriptorHeaps(Device* device) {
     auto create = Method<decltype(&Device::CreateDescriptorHeap)>(device, 14);
@@ -35,7 +36,20 @@ void AnyBox::Graphics::Tests::CheckDescriptorHeaps(Device* device) {
             constexpr auto usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
             auto scratch = Vulkan::Buffer::Allocate(device->GetGpuContext(), memory.size(), usage, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
             Vulkan::Tests::CheckCompute(device->GetGpuContext(), buffer, scratch, false);
+            auto& addresses = device->GetDescriptorAddresses();
+            std::shared_ptr<const Buffers::Mapping> retained;
+            if (type == 0 && visible) {
+                retained = addresses.Resolve(cpu, description.NumDescriptors * 32);
+                Require(retained->Translate(cpu + 32, 32) == buffer.GetAddress() + 32, "Shader-visible descriptor heap address translation changed");
+                Reject<std::out_of_range>([&] { (void)addresses.Resolve(cpu + description.NumDescriptors * 32, 32); });
+            } else Reject<std::out_of_range>([&] { (void)addresses.Resolve(cpu); });
             Require(release(heap) == 0, "Descriptor heap final reference was not released");
+            if (retained) {
+                Vulkan::Tests::Copy(device->GetGpuContext(), buffer, scratch, memory.size());
+                Require(std::ranges::equal(memory, scratch.Map()), "Retained descriptor storage was freed before GPU execution");
+                retained.reset();
+                Require(addresses.Capture().mappings.empty(), "Released descriptor heap retained a reference cycle");
+            }
         }
     }
     D3D12_DESCRIPTOR_HEAP_DESC description{};

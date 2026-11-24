@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <vector>
 
+namespace AnyBox::Graphics { class Resource; }
+
 namespace AnyBox::Graphics::Tests {
 void CheckComputeRoots(Device* device);
 void CheckComputeInline(Device* device);
@@ -55,6 +57,7 @@ void CheckFrameAncillary(Device* device);
 void CheckUnsupportedDeviceMethods(Device* device);
 void CheckPhysicalHeap(Device* device);
 void CheckPlacedBuffer(Device* device);
+void CheckShaderBufferArguments(Device* device, Resource* resource);
 void CheckDescriptorHeaps(Device* device);
 void CheckNullShaderViews(Device* device);
 void CheckNullUnorderedViews(Device* device);

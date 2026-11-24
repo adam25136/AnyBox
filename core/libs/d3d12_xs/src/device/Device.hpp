@@ -53,6 +53,7 @@ public:
     Vulkan::Context& GetGpuContext() const noexcept { return *gpuContext; }
     Texture::AddressSpace& GetTextureAddresses() noexcept { return textureAddresses; }
     Buffers::AddressSpace& GetBufferAddresses() noexcept { return bufferAddresses; }
+    Buffers::AddressSpace& GetDescriptorAddresses() noexcept { return descriptorAddresses; }
     bool Matches(const D3D12XboxCreateDeviceParameters& value) const noexcept;
     static std::uint32_t TryAddRef(Device* self);
     static std::uint32_t GetNodeCount(Device* self);
@@ -103,6 +104,7 @@ private:
     std::uint64_t nullConstantAddress = 0;
     Texture::AddressSpace textureAddresses;
     Buffers::AddressSpace bufferAddresses;
+    Buffers::AddressSpace descriptorAddresses;
     std::once_flag waveInitialization;
     std::array<std::uint32_t, 2> waveLimits{};
 };
