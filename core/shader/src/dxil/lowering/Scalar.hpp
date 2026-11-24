@@ -47,6 +47,7 @@ private:
     IrValue& legacyHalf(const LLVMBC::CallInst& instruction);
     IrValue& floatBinaryIntrinsic(const LLVMBC::CallInst& instruction);
     IrValue& floatTernaryIntrinsic(const LLVMBC::CallInst& instruction);
+    IrValue& floatExtrema3(const LLVMBC::CallInst& instruction, unsigned opcode);
     IrValue& floatDot(const LLVMBC::CallInst& instruction, unsigned dimensions);
     IrValue& floatBinary(const LLVMBC::BinaryOperator& instruction);
     IrValue& floatCompare(const LLVMBC::FCmpInst& instruction);

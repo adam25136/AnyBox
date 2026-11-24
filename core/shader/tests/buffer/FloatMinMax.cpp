@@ -1,22 +1,12 @@
 #include "FloatFixture.hpp"
 #include "FloatCallKernel.hpp"
+#include "FloatMinMaxReference.hpp"
 #include <Recompiler.hpp>
 #include <bit>
 #include <cmath>
 
 namespace {
-std::uint32_t Expected(std::uint32_t left, std::uint32_t right, bool maximum) {
-    auto flush = [](std::uint32_t value) { return (value & 0x7F800000U) == 0 ? value & 0x80000000U : value; };
-    left = flush(left);
-    right = flush(right);
-    auto a = std::bit_cast<float>(left);
-    auto b = std::bit_cast<float>(right);
-    if (std::isnan(a) && std::isnan(b)) return 0x7FC00000U;
-    if (std::isnan(a)) return right;
-    if (std::isnan(b)) return left;
-    if (((left | right) & 0x7FFFFFFFU) == 0) return maximum ? left & right : left | right;
-    return std::bit_cast<std::uint32_t>(maximum ? std::fmax(a, b) : std::fmin(a, b));
-}
+using BufferTests::Reference::MinMax;
 
 void Expect(BufferTests::FloatFixture& fixture, LLVMBC::Value* left, LLVMBC::Value* right, unsigned opcode, std::uint32_t reference) {
     auto* result = fixture.Call("dx.op.binary.f32", fixture.FloatType(), {fixture.Integer(32, opcode), left, right});
@@ -37,14 +27,14 @@ void BufferTests::CheckFloatMinMax(AnyBox::Vulkan::Context& context) {
         auto shader = AnyBox::Shader::CompileCompute(program, info, Target(), {0, 0, 0, 128});
         std::vector<std::uint32_t> expected;
         for (unsigned left = 0; left < input.size(); ++left) {
-            for (unsigned right = 0; right < input.size(); ++right) expected.push_back(Expected(input[left], input[right], opcode == 35));
+            for (unsigned right = 0; right < input.size(); ++right) expected.push_back(MinMax(input[left], input[right], opcode == 35));
         }
         RunGpu(context, shader, expected, {4, 1, 1}, std::as_bytes(std::span(input)));
     }
     FloatFixture fixture;
     for (unsigned opcode : {35u, 36u}) {
         for (std::uint32_t left : {0U, 0x80000000U}) {
-            for (unsigned right : {4u, 5u, 8u, 9u, 10u, 11u}) Expect(fixture, fixture.FloatConstant(left), fixture.Argument(right), opcode, Expected(left, input[right], opcode == 35));
+            for (unsigned right : {4u, 5u, 8u, 9u, 10u, 11u}) Expect(fixture, fixture.FloatConstant(left), fixture.Argument(right), opcode, MinMax(left, input[right], opcode == 35));
         }
     }
     fixture.Reject(*fixture.Call("dx.op.binary.f32", fixture.FloatType(), {}));

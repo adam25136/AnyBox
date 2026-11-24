@@ -65,6 +65,7 @@ void BufferTests::CheckSpirv() {
     CheckBufferArgumentGpu(context);
     CheckLegacyHalfGpu(context);
     CheckFloatMinMax(context);
+    CheckFloatMinMax3(context);
     CheckFloatMad(context);
     CheckFloatDot(context);
     CheckFloatDivision(context);

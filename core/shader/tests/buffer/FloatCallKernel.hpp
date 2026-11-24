@@ -4,7 +4,7 @@
 #include "lowering/Scalar.hpp"
 
 namespace BufferTests {
-inline ShaderRecompiler::IrProgram MakeFloatCallKernel(unsigned opcode, unsigned operands) {
+inline ShaderRecompiler::IrProgram MakeFloatCallKernel(unsigned opcode, unsigned operands, const char* intrinsic = nullptr) {
     using namespace ShaderRecompiler;
     if (operands != 2 && operands != 3) throw std::invalid_argument("Floating kernel requires two or three operands");
     ResourceTests::Fixture source;
@@ -49,7 +49,8 @@ inline ShaderRecompiler::IrProgram MakeFloatCallKernel(unsigned opcode, unsigned
         scalar.Bind(*argument, load(element));
         arguments.push_back(argument);
     }
-    auto& result = scalar.Get(*call(operands == 2 ? "dx.op.binary.f32" : "dx.op.tertiary.f32", 100, floating, std::move(arguments)));
+    auto* identifier = intrinsic ? intrinsic : operands == 2 ? "dx.op.binary.f32" : "dx.op.tertiary.f32";
+    auto& result = scalar.Get(*call(identifier, 100, floating, std::move(arguments)));
     auto& nan = builder.Emit(IrOpcode::FPIsNan32, IrType::Bool, {&result});
     auto& bits = builder.Select(nan, builder.Constant(0x7FC00000U), builder.BitCastU32(result));
     auto& low = builder.ShiftLeftLogical(index, builder.Constant(2));
