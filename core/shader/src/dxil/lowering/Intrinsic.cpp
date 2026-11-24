@@ -24,6 +24,7 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "llvm.copysign.f32") return LowerCopySign(instruction, *this, builder);
     if (identifier == "dx.op.legacyF16ToF32") return legacyHalf(instruction);
     if (identifier == "dx.op.binary.f32") return floatBinaryIntrinsic(instruction);
+    if (identifier == "dx.op.binary.i32") return LowerIntegerExtrema(instruction, *this, builder);
     if (identifier == "dx.op.tertiary.f32") return floatTernaryIntrinsic(instruction);
     if (identifier == "xbox.Min3_F32") return floatExtrema3(instruction, 8);
     if (identifier == "xbox.Max3_F32") return floatExtrema3(instruction, 9);
