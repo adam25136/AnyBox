@@ -11,8 +11,8 @@ ShaderRecompiler::ShaderComputeInputInfo Input() {
     return input;
 }
 
-void CheckTransfer(AnyBox::Vulkan::Context& context, std::optional<std::int32_t> constantRead = {}, bool pointerCasts = false) {
-    BufferTests::SharedFixture fixture(constantRead, false, 3, pointerCasts);
+void CheckTransfer(AnyBox::Vulkan::Context& context, std::optional<std::int32_t> constantRead = {}, bool pointerCasts = false, unsigned barrierMode = 9) {
+    BufferTests::SharedFixture fixture(constantRead, false, 3, pointerCasts, barrierMode);
     auto program = fixture.Lower();
     Fixtures::Require(program.Info().sharedMemoryBytes == 512 && program.Info().scratchDwords == 1);
     auto shader = AnyBox::Shader::CompileCompute(program, Input(), BufferTests::Target(), {0, 0, 0, 128});
@@ -38,6 +38,7 @@ void BufferTests::CheckSharedGpu(AnyBox::Vulkan::Context& context) {
     CheckTransfer(context, {}, true);
     CheckTransfer(context, 0, true);
     CheckTransfer(context, 63, true);
+    for (unsigned mode : {11u, 13u, 15u}) CheckTransfer(context, {}, false, mode);
     for (std::int32_t index : {-1, 64}) {
         SharedFixture fixture(index);
         Fixtures::Reject<std::out_of_range>([&] { (void)fixture.Lower(); });

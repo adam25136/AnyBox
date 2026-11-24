@@ -14,7 +14,7 @@ public:
 
 class SharedFixture {
 public:
-    explicit SharedFixture(std::optional<std::int32_t> constantRead = {}, bool invalidDynamic = false, unsigned space = 3, bool pointerCasts = false) {
+    explicit SharedFixture(std::optional<std::int32_t> constantRead = {}, bool invalidDynamic = false, unsigned space = 3, bool pointerCasts = false, unsigned barrierMode = 9) {
         auto& context = source.Context();
         auto* word = LLVMBC::Type::getInt32Ty(context);
         auto* floating = LLVMBC::Type::getFloatTy(context);
@@ -46,7 +46,7 @@ public:
         auto* scratch = emit<LLVMBC::AllocaInst>(LLVMBC::PointerType::get(privateType, 0), privateType, integer(1));
         auto* privatePointer = element(scratch, word, 0, {integer(0), integer(0)});
         emit<LLVMBC::StoreInst>(privatePointer, binary(global, integer(7), LLVMBC::Instruction::Add));
-        call("dx.op.barrier", 80, LLVMBC::Type::getVoidTy(context), {integer(80), integer(9)});
+        call("dx.op.barrier", 80, LLVMBC::Type::getVoidTy(context), {integer(80), integer(barrierMode)});
         LLVMBC::Value* selected = constantRead ? static_cast<LLVMBC::Value*>(integer(static_cast<std::uint32_t>(*constantRead))) : binary(local, integer(invalidDynamic ? 64 : 32), invalidDynamic ? LLVMBC::Instruction::Add : LLVMBC::Instruction::Xor);
         auto* firstRead = element(first, floating, 3, {integer(0), selected});
         if (pointerCasts) {

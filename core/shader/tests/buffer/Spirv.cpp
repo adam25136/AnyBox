@@ -14,6 +14,7 @@ namespace BufferTests {
 void CheckGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::ComputeCompilation& shader, std::uint32_t expected);
 void CheckGlobalConstants(AnyBox::Vulkan::Context& context);
 void CheckFloatBits(AnyBox::Vulkan::Context& context);
+void CheckBufferBarriers(AnyBox::Vulkan::Context& context);
 }
 void CheckRuntimeComputeMemory(AnyBox::Vulkan::Context& context);
 
@@ -61,6 +62,7 @@ void BufferTests::CheckSpirv() {
     CheckLocals(context);
     CheckGlobalConstants(context);
     CheckSharedGpu(context);
+    CheckBufferBarriers(context);
     CheckConstants(context);
     CheckBitFields(context);
     CheckUnaryBitsGpu(context);

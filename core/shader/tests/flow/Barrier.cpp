@@ -15,7 +15,7 @@ void CheckBarrier(std::uint32_t opcode, std::uint32_t mode) {
     auto* declaration = context.construct<LLVMBC::Function>(signature, 0, symbols);
     fixture.Emit<LLVMBC::CallInst>(block, signature, declaration, LLVMBC::Vector<LLVMBC::Value*>{LLVMBC::ConstantInt::get(word, opcode), LLVMBC::ConstantInt::get(word, mode)});
     fixture.Emit<LLVMBC::ReturnInst>(block, nullptr);
-    if (opcode != 80 || (mode != 1 && mode != 9)) {
+    if (opcode != 80 || mode == 0 || mode > 15) {
         Fixtures::Reject<std::runtime_error>([&] { (void)fixture.Lower(); });
         return;
     }
@@ -32,12 +32,18 @@ void CheckBarrier(std::uint32_t opcode, std::uint32_t mode) {
         auto operation = shader.code[offset] & 65535;
         Fixtures::Require(words != 0 && words <= shader.code.size() - offset);
         if (operation == spv::OpConstant && words == 4) constants.emplace(shader.code[offset + 2], shader.code[offset + 3]);
-        if (operation == spv::OpControlBarrier) {
-            Fixtures::Require(words == 4);
-            Fixtures::Require(constants.at(shader.code[offset + 1]) == spv::ScopeWorkgroup);
-            Fixtures::Require(constants.at(shader.code[offset + 2]) == spv::ScopeWorkgroup);
-            auto semantics = constants.at(shader.code[offset + 3]);
-            Fixtures::Require((semantics & spv::MemorySemanticsAcquireReleaseMask) != 0);
+        if (operation == spv::OpControlBarrier || operation == spv::OpMemoryBarrier) {
+            bool sync = (mode & 1) != 0;
+            Fixtures::Require(operation == static_cast<std::uint32_t>(sync ? spv::OpControlBarrier : spv::OpMemoryBarrier));
+            Fixtures::Require(words == (sync ? 4u : 3u));
+            if (sync) Fixtures::Require(constants.at(shader.code[offset + 1]) == spv::ScopeWorkgroup);
+            auto scope = constants.at(shader.code[offset + (sync ? 2 : 1)]);
+            Fixtures::Require(scope == static_cast<std::uint32_t>(mode & 2 ? spv::ScopeDevice : spv::ScopeWorkgroup));
+            std::uint32_t semantics = 0;
+            if (mode & 6) semantics |= spv::MemorySemanticsUniformMemoryMask | spv::MemorySemanticsImageMemoryMask;
+            if (mode & 8) semantics |= spv::MemorySemanticsWorkgroupMemoryMask;
+            if (semantics) semantics |= spv::MemorySemanticsAcquireReleaseMask;
+            Fixtures::Require(constants.at(shader.code[offset + (sync ? 3 : 2)]) == semantics);
             ++barriers;
         }
         offset += words;
@@ -47,6 +53,7 @@ void CheckBarrier(std::uint32_t opcode, std::uint32_t mode) {
 }
 
 void FlowTests::CheckBarriers() {
-    for (unsigned mode : {0u, 1u, 2u, 4u, 8u, 9u, 15u, UINT32_MAX}) CheckBarrier(80, mode);
+    for (unsigned mode = 0; mode <= 16; ++mode) CheckBarrier(80, mode);
+    CheckBarrier(80, UINT32_MAX);
     CheckBarrier(79, 9);
 }
