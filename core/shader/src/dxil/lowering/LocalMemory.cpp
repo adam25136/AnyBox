@@ -35,12 +35,12 @@ LocalLowering::Access LocalLowering::access(const Pointer& pointer, const LLVMBC
     return {offset, *active};
 }
 
-MemoryFlags LocalLowering::flags() {
+MemoryFlags LocalLowering::flags(bool shared) {
     auto& metadata = program.Resources().memoryInfo;
     if (metadata.size() >= std::numeric_limits<std::uint32_t>::max()) throw std::length_error("DXIL local memory operation count exceeds the IR limit");
     MemoryFlags result{static_cast<std::uint32_t>(metadata.size()), 0};
     MemoryInfo memory;
-    memory.kind = ResourceKind::Scratch;
+    memory.kind = shared ? ResourceKind::Lds : ResourceKind::Scratch;
     metadata.push_back(memory);
     return result;
 }
@@ -48,8 +48,12 @@ MemoryFlags LocalLowering::flags() {
 IrValue& LocalLowering::Load(const LLVMBC::LoadInst& instruction, ScalarLowering& scalar) {
     auto pointer = resolve(*instruction.getPointerOperand(), scalar);
     auto location = access(pointer, *instruction.getType());
+    if (pointer.allocation.shared) {
+        auto& value = builder.Emit(IrOpcode::LoadSharedU32, IrType::U32, {&location.offset, &location.active}, flags(true));
+        return instruction.getType()->getTypeID() == LLVMBC::Type::TypeID::FloatTyID ? builder.BitCastF32(value) : value;
+    }
     auto& resource = builder.Emit(IrOpcode::GetScratchResource, IrType::AddressResource, {});
-    auto& value = builder.Emit(IrOpcode::LoadAddressU32, IrType::U32, {&resource, &location.offset, &builder.Constant(0), &location.active}, flags());
+    auto& value = builder.Emit(IrOpcode::LoadAddressU32, IrType::U32, {&resource, &location.offset, &builder.Constant(0), &location.active}, flags(false));
     return instruction.getType()->getTypeID() == LLVMBC::Type::TypeID::FloatTyID ? builder.BitCastF32(value) : value;
 }
 
@@ -59,6 +63,10 @@ void LocalLowering::store(const LLVMBC::StoreInst& instruction, ScalarLowering& 
     auto location = access(pointer, *source->getType());
     auto& input = scalar.Get(*source);
     auto& value = input.Type() == IrType::F32 ? builder.BitCastU32(input) : input;
+    if (pointer.allocation.shared) {
+        (void)builder.Emit(IrOpcode::WriteSharedU32, IrType::Void, {&location.offset, &value, &location.active}, flags(true));
+        return;
+    }
     auto& resource = builder.Emit(IrOpcode::GetScratchResource, IrType::AddressResource, {});
-    (void)builder.Emit(IrOpcode::StoreAddressU32, IrType::Void, {&resource, &location.offset, &builder.Constant(0), &value, &location.active}, flags());
+    (void)builder.Emit(IrOpcode::StoreAddressU32, IrType::Void, {&resource, &location.offset, &builder.Constant(0), &value, &location.active}, flags(false));
 }

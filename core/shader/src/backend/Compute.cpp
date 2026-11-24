@@ -29,7 +29,11 @@ AnyBox::Shader::ComputeCompilation AnyBox::Shader::CompileCompute(ShaderRecompil
 
     program.Resources().stage = IrShaderStage::Compute;
     program.SetWaveSize(input.waveSize);
-    program.Info().sharedMemoryBytes = input.ldsSizeDwords * 4;
+    auto stageInput = input;
+    auto sharedBytes = program.Info().sharedMemoryBytes;
+    if (sharedBytes % 4 != 0 || (input.ldsSizeDwords != 0 && input.ldsSizeDwords * 4 < sharedBytes)) throw std::invalid_argument("Compute shared memory is smaller than the declared allocations or is not word aligned");
+    if (stageInput.ldsSizeDwords == 0) stageInput.ldsSizeDwords = sharedBytes / 4;
+    program.Info().sharedMemoryBytes = program.Metadata().splitState ? stageInput.ldsSizeDwords * 4 : 0;
     if (program.Info().scratchDwords != 0 && input.scratchSizeDwords != 0 && program.Info().scratchDwords != input.scratchSizeDwords) throw std::invalid_argument("Local storage and compute scratch sizes do not match");
     if (program.Info().scratchDwords == 0) program.Info().scratchDwords = input.scratchSizeDwords;
     ValidateProgram(program, true);
@@ -53,7 +57,7 @@ AnyBox::Shader::ComputeCompilation AnyBox::Shader::CompileCompute(ShaderRecompil
     DeadCodeEliminator{}.RemoveIdentities(program);
     (void)RedundantValueEliminator{}.Eliminate(program);
     DeadCodeEliminator{}.Eliminate(program);
-    ShaderStageInputInfo stage{nullptr, nullptr, &input};
+    ShaderStageInputInfo stage{nullptr, nullptr, &stageInput};
     ShaderInfoCollector{}.Collect(program, stage);
     auto allocation = BindingAllocator{}.Allocate(program, layout, target.registrationModules);
     ComputeCompilation result;

@@ -12,10 +12,12 @@ LocalLowering::Pointer LocalLowering::resolve(const LLVMBC::Value& value, Scalar
     Pointer pointer{};
     if (auto found = allocations.find(&value); found != allocations.end()) {
         pointer = {found->second, value.getType()->getPointerElementType(), &builder.ConstantU64(0), 0};
+    } else if (auto* variable = LLVMBC::dyn_cast<LLVMBC::GlobalVariable>(&value)) {
+        pointer = {sharedAllocation(*variable), value.getType()->getPointerElementType(), &builder.ConstantU64(0), 0};
     } else if (auto* instruction = LLVMBC::dyn_cast<LLVMBC::GetElementPtrInst>(&value)) {
         pointer = element(*instruction, scalar);
     } else {
-        throw std::runtime_error("DXIL pointer does not reference a supported local allocation");
+        throw std::runtime_error("DXIL pointer does not reference a supported memory allocation: kind=" + std::to_string(static_cast<unsigned>(value.get_value_kind())));
     }
     pointers.emplace(&value, pointer);
     return pointer;
@@ -52,6 +54,7 @@ LocalLowering::Pointer LocalLowering::element(const LLVMBC::GetElementPtrInst& i
         pointer.constant.reset();
     }
     auto* type = instruction.getType();
-    if (!type || type->getTypeID() != LLVMBC::Type::TypeID::PointerTyID || type->getPointerAddressSpace() != 0 || type->getPointerElementType() != pointer.element) throw std::runtime_error("DXIL local pointer result type does not match its element");
+    auto space = pointer.allocation.shared ? 3u : 0u;
+    if (!type || type->getTypeID() != LLVMBC::Type::TypeID::PointerTyID || type->getPointerAddressSpace() != space || type->getPointerElementType() != pointer.element) throw std::runtime_error("DXIL memory pointer result type does not match its element or address space");
     return pointer;
 }

@@ -21,6 +21,7 @@ private:
     struct Allocation {
         std::uint32_t base;
         std::uint32_t bytes;
+        bool shared = false;
     };
     struct Pointer {
         Allocation allocation;
@@ -36,7 +37,8 @@ private:
     Pointer resolve(const LLVMBC::Value& pointer, ScalarLowering& scalar);
     Pointer element(const LLVMBC::GetElementPtrInst& instruction, ScalarLowering& scalar);
     Access access(const Pointer& pointer, const LLVMBC::Type& type);
-    ShaderRecompiler::MemoryFlags flags();
+    ShaderRecompiler::MemoryFlags flags(bool shared);
+    Allocation sharedAllocation(const LLVMBC::GlobalVariable& variable);
     void store(const LLVMBC::StoreInst& instruction, ScalarLowering& scalar);
     ShaderRecompiler::IrProgram& program;
     ShaderRecompiler::IrBuilder& builder;

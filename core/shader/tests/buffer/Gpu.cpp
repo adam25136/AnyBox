@@ -67,7 +67,15 @@ void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::Comput
     for (std::size_t index = 0; index < expected.size(); ++index) {
         std::uint32_t value = 0;
         std::memcpy(&value, output.Map().data() + index * sizeof(value), sizeof(value));
-        if (value != expected[index]) throw std::runtime_error("DXIL GPU result mismatch at " + std::to_string(index) + ": " + std::to_string(value) + " != " + std::to_string(expected[index]));
+        if (value != expected[index]) {
+            std::string first;
+            for (std::size_t word = 0; word < 3 && word < expected.size(); ++word) {
+                std::uint32_t observed = 0;
+                std::memcpy(&observed, output.Map().data() + word * sizeof(observed), sizeof(observed));
+                first += " " + std::to_string(observed);
+            }
+            throw std::runtime_error("DXIL GPU result mismatch at " + std::to_string(index) + ": " + std::to_string(value) + " != " + std::to_string(expected[index]) + "; first words:" + first);
+        }
     }
 }
 

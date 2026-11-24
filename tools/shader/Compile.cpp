@@ -29,6 +29,7 @@ AnyBox::Shader::ComputeArtifact AnyBox::Shader::Tools::CompileDxil(std::span<con
     if (input.waveSize != input.hostSubgroupSize) throw std::runtime_error("Offline compute wave size adaptation is not implemented");
     program.SetWaveSize(input.waveSize);
     Dxil::FunctionLowering(program, resources, bindings).Run(*entry.function);
+    input.ldsSizeDwords = program.Info().sharedMemoryBytes / 4;
     auto result = Dxil::CompileCompute(program, input, AuditTarget(), {0, 0, 0, 128});
     return MakeArtifact(std::move(result), resources.GetBindings(), input, HashShader(code));
 }
