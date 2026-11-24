@@ -14,7 +14,7 @@ public:
 
 class SharedFixture {
 public:
-    explicit SharedFixture(std::optional<std::int32_t> constantRead = {}, bool invalidDynamic = false, unsigned space = 3) {
+    explicit SharedFixture(std::optional<std::int32_t> constantRead = {}, bool invalidDynamic = false, unsigned space = 3, bool pointerCasts = false) {
         auto& context = source.Context();
         auto* word = LLVMBC::Type::getInt32Ty(context);
         auto* floating = LLVMBC::Type::getFloatTy(context);
@@ -35,7 +35,9 @@ public:
         auto* local = call("dx.op.threadIdInGroup.i32", 95, word, {integer(95), integer(0)});
         auto* value = binary(binary(global, integer(17), LLVMBC::Instruction::Mul), integer(5), LLVMBC::Instruction::Add);
         auto* floatValue = emit<LLVMBC::CastInst>(floating, value, LLVMBC::Instruction::BitCast);
-        emit<LLVMBC::StoreInst>(element(first, floating, 3, {integer(0), local}), floatValue);
+        auto* firstPointer = element(first, floating, 3, {integer(0), local});
+        if (pointerCasts) firstPointer = emit<LLVMBC::CastInst>(LLVMBC::PointerType::get(word, 3), firstPointer, LLVMBC::Instruction::BitCast);
+        emit<LLVMBC::StoreInst>(firstPointer, pointerCasts ? value : floatValue);
         auto* row = binary(local, integer(5), LLVMBC::Instruction::LShr);
         auto* column = binary(local, integer(31), LLVMBC::Instruction::And);
         auto* secondValue = binary(value, integer(0xA5A5A5A5), LLVMBC::Instruction::Xor);
@@ -46,8 +48,13 @@ public:
         emit<LLVMBC::StoreInst>(privatePointer, binary(global, integer(7), LLVMBC::Instruction::Add));
         call("dx.op.barrier", 80, LLVMBC::Type::getVoidTy(context), {integer(80), integer(9)});
         LLVMBC::Value* selected = constantRead ? static_cast<LLVMBC::Value*>(integer(static_cast<std::uint32_t>(*constantRead))) : binary(local, integer(invalidDynamic ? 64 : 32), invalidDynamic ? LLVMBC::Instruction::Add : LLVMBC::Instruction::Xor);
-        auto* firstLoad = emit<LLVMBC::LoadInst>(floating, element(first, floating, 3, {integer(0), selected}));
-        auto* firstBits = emit<LLVMBC::CastInst>(word, firstLoad, LLVMBC::Instruction::BitCast);
+        auto* firstRead = element(first, floating, 3, {integer(0), selected});
+        if (pointerCasts) {
+            auto* type = LLVMBC::PointerType::get(word, 3);
+            firstRead = constantRead ? static_cast<LLVMBC::Value*>(context.construct<LLVMBC::ConstantExpr>(LLVMBC::Instruction::BitCast, type, LLVMBC::Vector<LLVMBC::Value*>{firstRead})) : emit<LLVMBC::CastInst>(type, firstRead, LLVMBC::Instruction::BitCast);
+        }
+        auto* firstLoad = emit<LLVMBC::LoadInst>(pointerCasts ? word : floating, firstRead);
+        LLVMBC::Value* firstBits = pointerCasts ? static_cast<LLVMBC::Value*>(firstLoad) : emit<LLVMBC::CastInst>(word, firstLoad, LLVMBC::Instruction::BitCast);
         auto* reverse = binary(integer(63), local, LLVMBC::Instruction::Sub);
         auto* reverseRow = binary(reverse, integer(5), LLVMBC::Instruction::LShr);
         auto* reverseColumn = binary(reverse, integer(31), LLVMBC::Instruction::And);

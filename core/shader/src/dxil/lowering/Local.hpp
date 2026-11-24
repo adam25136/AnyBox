@@ -36,6 +36,7 @@ private:
     static std::uint32_t size(const LLVMBC::Type& type);
     Pointer resolve(const LLVMBC::Value& pointer, ScalarLowering& scalar);
     Pointer element(const LLVMBC::GetElementPtrInst& instruction, ScalarLowering& scalar);
+    Pointer castPointer(const LLVMBC::Value& source, LLVMBC::Type* target, ScalarLowering& scalar);
     Access access(const Pointer& pointer, const LLVMBC::Type& type);
     ShaderRecompiler::MemoryFlags flags(bool shared);
     Allocation sharedAllocation(const LLVMBC::GlobalVariable& variable);

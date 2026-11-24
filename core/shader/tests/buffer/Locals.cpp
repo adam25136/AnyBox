@@ -14,8 +14,8 @@ ShaderRecompiler::ShaderComputeInputInfo Input() {
 }
 
 void BufferTests::CheckLocals(AnyBox::Vulkan::Context& context) {
-    {
-        LocalFixture fixture;
+    for (unsigned pointerMode : {0u, 1u}) {
+        LocalFixture fixture({}, false, pointerMode);
         auto program = fixture.Lower();
         Fixtures::Require(program.Info().scratchDwords == 580);
         auto shader = AnyBox::Shader::CompileCompute(program, Input(), Target(), {0, 0, 0, 128});
@@ -41,6 +41,10 @@ void BufferTests::CheckLocals(AnyBox::Vulkan::Context& context) {
             expected.push_back(invocation);
         }
         RunGpu(context, shader, expected, {2, 1, 1});
+    }
+    {
+        LocalFixture fixture({}, false, 2);
+        Fixtures::Reject<std::runtime_error>([&] { (void)fixture.Lower(); });
     }
     for (std::int32_t index : {-1, 576}) {
         LocalFixture fixture(index);

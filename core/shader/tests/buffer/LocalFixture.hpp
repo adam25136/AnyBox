@@ -17,7 +17,7 @@ public:
 
 class LocalFixture {
 public:
-    explicit LocalFixture(std::optional<std::int32_t> constantIndex = {}, bool invalidDynamic = false) {
+    explicit LocalFixture(std::optional<std::int32_t> constantIndex = {}, bool invalidDynamic = false, unsigned pointerMode = 0) {
         auto& context = source.Context();
         auto* word = LLVMBC::Type::getInt32Ty(context);
         auto* floating = LLVMBC::Type::getFloatTy(context);
@@ -33,7 +33,11 @@ public:
         if (!constantIndex && !invalidDynamic) {
             for (unsigned index = 0; index < 576; ++index) {
                 auto* pointer = element(table, floating, integer(index));
-                auto* value = LLVMBC::ConstantFP::get(floating, std::bit_cast<std::uint32_t>(index * 0.25f));
+                LLVMBC::Value* value = LLVMBC::ConstantFP::get(floating, std::bit_cast<std::uint32_t>(index * 0.25f));
+                if (pointerMode != 0) {
+                    pointer = emit<LLVMBC::CastInst>(LLVMBC::PointerType::get(word, pointerMode == 2 ? 3u : 0u), pointer, LLVMBC::Instruction::BitCast);
+                    value = integer(std::bit_cast<std::uint32_t>(index * 0.25f));
+                }
                 (void)emit<LLVMBC::StoreInst>(pointer, value);
             }
         }

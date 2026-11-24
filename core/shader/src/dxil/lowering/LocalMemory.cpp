@@ -7,6 +7,10 @@ using namespace ShaderRecompiler;
 using AnyBox::Shader::Dxil::LocalLowering;
 
 bool LocalLowering::Emit(const LLVMBC::Instruction& instruction, ScalarLowering& scalar) {
+    if (LLVMBC::isa<LLVMBC::CastInst>(&instruction) && instruction.getType() && instruction.getType()->getTypeID() == LLVMBC::Type::TypeID::PointerTyID) {
+        (void)resolve(instruction, scalar);
+        return true;
+    }
     if (LLVMBC::isa<LLVMBC::AllocaInst>(&instruction) || LLVMBC::isa<LLVMBC::GetElementPtrInst>(&instruction)) {
         (void)resolve(instruction, scalar);
         return true;
