@@ -55,7 +55,7 @@ void BufferTests::CheckFloats(AnyBox::Vulkan::Context& context) {
     auto* belowOne = fixture.Make<LLVMBC::BinaryOperator>(fixture.Argument(0), epsilon, Op::FSub);
     auto* product = fixture.Make<LLVMBC::BinaryOperator>(aboveOne, belowOne, Op::FMul);
     fixture.Expect(*fixture.Make<LLVMBC::BinaryOperator>(product, fixture.Argument(0), Op::FSub), 0);
-    fixture.Reject(*fixture.Make<LLVMBC::BinaryOperator>(fixture.Argument(0), fixture.Argument(1), Op::FDiv));
+    fixture.Expect(*fixture.Make<LLVMBC::BinaryOperator>(fixture.Argument(0), fixture.Argument(1), Op::FDiv), 0xBF000000);
     fixture.Reject(*fixture.Make<LLVMBC::BinaryOperator>(fixture.Argument(0), fixture.Argument(1), Op::FRem));
     fixture.Run(context, input);
 }

@@ -12,6 +12,7 @@ IrValue& ScalarLowering::floatBinary(const LLVMBC::BinaryOperator& instruction) 
         case LLVMBC::Instruction::FAdd: opcode = IrOpcode::FPAdd32; break;
         case LLVMBC::Instruction::FSub: opcode = IrOpcode::FPSub32; break;
         case LLVMBC::Instruction::FMul: opcode = IrOpcode::FPMul32; break;
+        case LLVMBC::Instruction::FDiv: opcode = IrOpcode::FDiv32; break;
         default: throw std::runtime_error("DXIL floating binary operation is not implemented: " + std::to_string(instruction.getOpcode()));
     }
     return builder.Emit(opcode, IrType::F32, {&left, &right});
