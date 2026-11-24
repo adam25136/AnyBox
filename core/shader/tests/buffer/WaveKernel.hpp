@@ -10,13 +10,18 @@ inline ShaderRecompiler::IrProgram MakeWaveKernel(std::uint64_t mask, unsigned w
     auto* word = LLVMBC::Type::getInt32Ty(context);
     auto* boolean = LLVMBC::Type::getInt1Ty(context);
     auto* floating = LLVMBC::Type::getFloatTy(context);
+    bool counting = operation == 135;
     auto* byte = LLVMBC::Type::getInt8Ty(context);
     auto* argument = context.construct<LLVMBC::Argument>(floating, 0, false);
     auto integer = [&](LLVMBC::Type* type, unsigned value) { return LLVMBC::ConstantInt::get(type, value); };
-    source.Module().add_value_name(110, operation == 0 ? "dx.op.waveIsFirstLane" : "dx.op.waveActiveOp.f32");
+    source.Module().add_value_name(110, counting ? "dx.op.waveAllOp" : operation == 0 ? "dx.op.waveIsFirstLane" : "dx.op.waveActiveOp.f32");
     auto parameters = operation == 0 ? LLVMBC::Vector<LLVMBC::Type*>{word} : LLVMBC::Vector<LLVMBC::Type*>{word, floating, byte, byte};
     auto arguments = operation == 0 ? LLVMBC::Vector<LLVMBC::Value*>{integer(word, 110)} : LLVMBC::Vector<LLVMBC::Value*>{integer(word, 119), argument, integer(byte, operation), integer(byte, 0)};
-    auto* signature = context.construct<LLVMBC::FunctionType>(context, operation == 0 ? boolean : floating, std::move(parameters));
+    if (counting) {
+        parameters = {word, boolean};
+        arguments = {integer(word, 135), integer(boolean, 1)};
+    }
+    auto* signature = context.construct<LLVMBC::FunctionType>(context, counting ? word : operation == 0 ? boolean : floating, std::move(parameters));
     auto* function = context.construct<LLVMBC::Function>(signature, 110, source.Module());
     auto* call = context.construct<LLVMBC::CallInst>(signature, function, std::move(arguments));
     IrProgram program;
@@ -51,7 +56,7 @@ inline ShaderRecompiler::IrProgram MakeWaveKernel(std::uint64_t mask, unsigned w
     auto& global = builder.Emit(IrOpcode::GetBuiltin, IrType::U32, {&builder.Constant(static_cast<unsigned>(StageInputKind::GlobalInvocationId)), &builder.Constant(0)});
     builder.SetInsertionPoint(body);
     AnyBox::Shader::Dxil::ScalarLowering scalar(program, builder);
-    if (operation != 0) {
+    if (operation != 0 && !counting) {
         auto& inputOffset = builder.ShiftLeftLogical(builder.BitwiseAnd(lane, builder.Constant(15)), builder.Constant(2));
         auto& inputAddress = builder.Emit(IrOpcode::GetAddressResource, IrType::AddressResource, {&inputOffset, &builder.Constant(1)});
         MemoryInfo inputMemory;
@@ -62,7 +67,7 @@ inline ShaderRecompiler::IrProgram MakeWaveKernel(std::uint64_t mask, unsigned w
         scalar.Bind(*argument, builder.BitCastF32(loaded));
     }
     auto& value = scalar.Get(*call);
-    auto& result = operation == 0 ? builder.Select(value, builder.Constant(1), builder.Constant(0)) : builder.BitCastU32(value);
+    auto& result = counting ? value : operation == 0 ? builder.Select(value, builder.Constant(1), builder.Constant(0)) : builder.BitCastU32(value);
     auto& offset = builder.ShiftLeftLogical(global, builder.Constant(2));
     auto& address = builder.Emit(IrOpcode::GetAddressResource, IrType::AddressResource, {&offset, &builder.Constant(2)});
     MemoryInfo memory;
