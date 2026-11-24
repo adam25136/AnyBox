@@ -1,8 +1,11 @@
 #include "Offline.hpp"
 #include <anybox/graphics/container/View.hpp>
+#include <anybox/graphics/container/Dxil.hpp>
 
 bool AnyBox::Graphics::RequiresPreparedCompute(Device& device, std::span<const std::byte> code) {
     Container::DxbcView container(code);
+    auto program = container.FindPart(0x4C495844);
+    if (program && Container::DxilView(program->data).HasEmbeddedData()) return true;
     auto features = container.FindPart(0x30494653);
     if (!features) return false;
     if (features->data.size() != 8) throw std::invalid_argument("Compute shader feature information size is invalid");

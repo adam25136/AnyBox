@@ -3,36 +3,19 @@
 #include "../../src/pipeline/State.hpp"
 #include <anybox/graphics/container/View.hpp>
 #include "../../../../graphics/vulkan/tests/Tests.hpp"
-#include <d3dcompiler.h>
 
 namespace {
 std::vector<std::byte> EmptyShader() {
-    constexpr char source[] = "[numthreads(1,1,1)] void main() {}";
-    ID3DBlob* output = nullptr;
-    auto result = D3DCompile(source, sizeof(source) - 1, nullptr, nullptr, nullptr, "main", "cs_5_1", D3DCOMPILE_ENABLE_STRICTNESS, 0, &output, nullptr);
-    AnyBox::Graphics::Tests::Require(result == S_OK && output, "Empty HLSL fixture compilation failed");
-    auto* first = static_cast<const std::byte*>(output->GetBufferPointer());
-    std::vector<std::byte> code(first, first + output->GetBufferSize());
-    output->Release();
-    return code;
+    std::array<std::uint32_t, 10> words{0x50065, 10, 0x4C495844, 0x105, 28, 4, 0x54414458, 0, 36, 0x43424F4E};
+    auto program = std::as_bytes(std::span(words));
+    std::array<std::byte, 8> features{};
+    return AnyBox::Graphics::Container::BuildDxbc(std::array<AnyBox::Graphics::Container::Part, 2>{{{0x4C495844, program}, {0x30494653, features}}});
 }
 }
 
 void AnyBox::Graphics::Tests::CheckPreparedPipeline(Device* device) {
-    D3D12_FEATURE_DATA_D3D12_OPTIONS4 options{};
-    Require(device->GetHost()->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS4, &options, sizeof(options)) == S_OK, "Prepared pipeline capability query failed");
-    if (options.Native16BitShaderOpsSupported) return;
     ComputeFixture fixture(device);
-    auto original = EmptyShader();
-    Container::DxbcView view(original);
-    std::vector<Container::Part> parts;
-    for (unsigned index = 0; index < view.GetPartCount(); ++index) {
-        auto part = view.GetPart(index);
-        if (part.tag != 0x30494653) parts.push_back(part);
-    }
-    std::array features{std::byte{0}, std::byte{0}, std::byte{4}, std::byte{0}, std::byte{0}, std::byte{0}, std::byte{0}, std::byte{0}};
-    parts.push_back({0x30494653, features});
-    auto code = Container::BuildDxbc(parts);
+    auto code = EmptyShader();
     Shader::ComputeArtifact artifact;
     artifact.sourceHash = Shader::HashShader(code);
     artifact.threads = {1, 1, 1};
