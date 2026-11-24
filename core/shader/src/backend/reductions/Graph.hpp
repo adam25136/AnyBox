@@ -23,10 +23,12 @@ public:
     bool Glsl(const Node& node, GLSLstd450 operation, std::size_t operands) const;
     bool MinMax(const Node& node, bool maximum, std::uint32_t& left, std::uint32_t& right) const;
     bool ActiveWord(std::uint32_t id, std::uint32_t block) const;
+    bool LaneIndex(std::uint32_t id, std::uint32_t block) const;
     bool Selector(std::uint32_t id, std::uint32_t block, unsigned& lane, std::uint32_t& active) const;
 
 private:
     std::vector<Node> definitions;
     std::vector<bool> glslImports;
+    std::vector<bool> laneVariables;
 };
 }

@@ -38,6 +38,7 @@ private:
     IrValue& waveFirst(const LLVMBC::CallInst& instruction);
     IrValue& waveCount(const LLVMBC::CallInst& instruction);
     IrValue& waveReduction(const LLVMBC::CallInst& instruction);
+    IrValue& waveInteger(const LLVMBC::CallInst& instruction, bool prefix);
     IrValue& bitField(const LLVMBC::CallInst& instruction, bool insert);
     IrValue& unaryBits(const LLVMBC::CallInst& instruction);
     IrValue& legacyHalf(const LLVMBC::CallInst& instruction);

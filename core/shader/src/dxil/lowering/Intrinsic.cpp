@@ -18,6 +18,8 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "dx.op.waveIsFirstLane") return waveFirst(instruction);
     if (identifier == "dx.op.waveAllOp") return waveCount(instruction);
     if (identifier == "dx.op.waveActiveOp.f32") return waveReduction(instruction);
+    if (identifier == "dx.op.waveActiveOp.i32") return waveInteger(instruction, false);
+    if (identifier == "dx.op.wavePrefixOp.i32") return waveInteger(instruction, true);
     if (identifier == "xbox.global_atomic_fmin") return globalFloatAtomic(instruction, false);
     if (identifier == "xbox.global_atomic_fmax") return globalFloatAtomic(instruction, true);
     if (identifier == "dx.op.threadId.i32") return thread(instruction, 93);

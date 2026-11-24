@@ -6,6 +6,8 @@ target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Floats.cpp test
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/FloatMad.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Wave.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveCount.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveInteger.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/IntegerWaveProof.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveReduction.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveReductionInvalid.cpp tests/buffer/WaveReductionProof.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/GlobalAtomic.cpp tests/buffer/GlobalAtomicInvalid.cpp)

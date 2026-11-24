@@ -9,19 +9,19 @@ void CheckWaveReductionProof(std::span<const std::uint32_t> code) {
     }
     Fixtures::Require(shuffles.size() == 32);
     std::vector<std::uint32_t> original(code.begin(), code.end());
-    Fixtures::Require(AnyBox::Shader::ReduceWaveMinMax(original) == 1);
+    Fixtures::Require(AnyBox::Shader::ReduceWaveOperations(original) == 1);
     for (auto offset : shuffles) {
         std::vector<std::uint32_t> changed(code.begin(), code.end());
         changed[offset + 5] = changed[offset + 3];
         auto before = changed;
-        Fixtures::Require(AnyBox::Shader::ReduceWaveMinMax(changed) == 0 && changed == before);
+        Fixtures::Require(AnyBox::Shader::ReduceWaveOperations(changed) == 0 && changed == before);
         changed.assign(code.begin(), code.end());
         changed[offset + 4] = changed[offset + 3];
-        Fixtures::Require(AnyBox::Shader::ReduceWaveMinMax(changed) == 0);
+        Fixtures::Require(AnyBox::Shader::ReduceWaveOperations(changed) == 0);
     }
     for (std::size_t index = 0; index < shuffles.size(); ++index) {
         std::vector<std::uint32_t> changed(code.begin(), code.end());
         changed[shuffles[index] + 5] = changed[shuffles[(index + 1) % shuffles.size()] + 5];
-        Fixtures::Require(AnyBox::Shader::ReduceWaveMinMax(changed) == 0);
+        Fixtures::Require(AnyBox::Shader::ReduceWaveOperations(changed) == 0);
     }
 }

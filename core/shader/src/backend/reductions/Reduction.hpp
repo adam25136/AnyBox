@@ -5,5 +5,5 @@
 #include <vector>
 
 namespace AnyBox::Shader {
-std::size_t ReduceWaveMinMax(std::vector<std::uint32_t>& code);
+std::size_t ReduceWaveOperations(std::vector<std::uint32_t>& code);
 }

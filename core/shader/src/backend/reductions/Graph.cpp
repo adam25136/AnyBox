@@ -8,12 +8,17 @@ Graph::Graph(std::span<const std::uint32_t> code) {
     if (code.size() < 5 || code[0] != 0x07230203 || code[3] > code.size() * 4) throw std::invalid_argument("Wave reduction received invalid SPIR-V framing");
     definitions.resize(code[3]);
     glslImports.resize(code[3]);
+    laneVariables.resize(code[3]);
     std::uint32_t block = 0;
     for (std::size_t offset = 5; offset < code.size();) {
         auto count = code[offset] >> 16;
         if (count == 0 || count > code.size() - offset) throw std::invalid_argument("Wave reduction received a truncated instruction");
         auto words = code.subspan(offset, count);
         auto opcode = static_cast<spv::Op>(words[0] & 65535);
+        if (opcode == spv::OpDecorate && count == 4 && words[2] == spv::DecorationBuiltIn && words[3] == spv::BuiltInSubgroupLocalInvocationId) {
+            if (words[1] >= laneVariables.size()) throw std::invalid_argument("Wave reduction builtin identifier is invalid");
+            laneVariables[words[1]] = true;
+        }
         if (opcode == spv::OpFunction || opcode == spv::OpFunctionEnd) block = 0;
         if (opcode == spv::OpLabel && count == 2) block = words[1];
         bool result = false;
@@ -32,6 +37,11 @@ Graph::Graph(std::span<const std::uint32_t> code) {
 const Node& Graph::Get(std::uint32_t id) const {
     static const Node empty;
     return id < definitions.size() ? definitions[id] : empty;
+}
+
+bool Graph::LaneIndex(std::uint32_t id, std::uint32_t block) const {
+    const auto& value = Get(id);
+    return value.Is(spv::OpLoad, 4) && value.block == block && UnsignedWord(value.words[1]) && value.words[3] < laneVariables.size() && laneVariables[value.words[3]];
 }
 
 bool Graph::UnsignedWord(std::uint32_t id) const {

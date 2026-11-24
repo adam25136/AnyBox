@@ -27,7 +27,7 @@ void Eliminate(std::vector<std::uint32_t>& code, std::uint32_t vulkanVersion) {
 bool AnyBox::Shader::OptimizeWaveReductions(std::vector<std::uint32_t>& code, const ShaderRecompiler::ShaderComputeInputInfo& input, const ShaderRecompiler::SpirvTargetOptions& target) {
     if (input.waveSize != 32 || target.subgroupSize != 32) return false;
     if (std::ranges::find(target.supportedCapabilities, static_cast<std::uint32_t>(spv::CapabilityGroupNonUniformArithmetic)) == target.supportedCapabilities.end()) return false;
-    if (ReduceWaveMinMax(code) == 0) return false;
+    if (ReduceWaveOperations(code) == 0) return false;
     ValidateSpirv(code, target.vulkanVersion);
     do { Eliminate(code, target.vulkanVersion); } while (RemoveDeadSubgroupOperations(code, target.vulkanVersion));
     return true;

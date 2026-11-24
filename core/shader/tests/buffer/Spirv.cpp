@@ -65,6 +65,7 @@ void BufferTests::CheckSpirv() {
     CheckFloatMad(context);
     CheckWaveFirstGpu(context);
     CheckWaveCountGpu(context);
+    CheckWaveIntegerGpu(context);
     CheckWaveReductionGpu(context);
     CheckGlobalFloatAtomicGpu(context);
     CheckUndefGpu(context);
