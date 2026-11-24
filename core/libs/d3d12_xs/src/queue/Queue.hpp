@@ -32,6 +32,8 @@ public:
 private:
     friend class ObjectLifetime<Queue>;
     std::unique_lock<std::mutex> lockCommands();
+    Vulkan::QueueBridge& getGpuBridge();
+    void executeGpu(std::span<void* const> lists, std::span<ID3D12CommandList*> native);
     const ObjectTable* vtable;
     std::atomic<std::uint32_t>& getReferences() noexcept { return references; }
     std::atomic<std::uint32_t> references{1};

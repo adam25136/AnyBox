@@ -63,6 +63,7 @@ int main(int argc, char** argv) {
             CheckComputeInline(device);
             CheckPipelines(device);
             CheckPreparedPipeline(device);
+            CheckPreparedDispatch(device);
             CheckSynchronization(device);
             CheckPhysicalHeap(device);
             CheckPlacedBuffer(device);

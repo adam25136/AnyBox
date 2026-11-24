@@ -53,6 +53,7 @@ public:
     ID3D12Device* GetHost() const noexcept { return host; }
     std::array<std::uint32_t, 2> GetWaveLimits();
     Vulkan::Context& GetGpuContext() const noexcept { return *gpuContext; }
+    std::uint64_t GetNullConstantAddress() const noexcept { return nullConstantAddress; }
     Texture::AddressSpace& GetTextureAddresses() noexcept { return textureAddresses; }
     Buffers::AddressSpace& GetBufferAddresses() noexcept { return bufferAddresses; }
     Buffers::AddressSpace& GetDescriptorAddresses() noexcept { return descriptorAddresses; }

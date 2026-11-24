@@ -49,3 +49,5 @@ Snapshot AddressSpace::Capture() const {
     Collect(state->root.get(), snapshot.mappings);
     return snapshot;
 }
+
+std::uint64_t AddressSpace::GetGeneration() const { std::scoped_lock lock(state->mutex); return state->generation; }

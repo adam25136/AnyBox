@@ -7,8 +7,7 @@ std::unique_lock<std::mutex> AnyBox::Graphics::Queue::lockCommands() {
     return lock;
 }
 
-void AnyBox::Graphics::Queue::SubmitGpu(std::span<const VkCommandBuffer> commands) {
-    auto lock = lockCommands();
+AnyBox::Vulkan::QueueBridge& AnyBox::Graphics::Queue::getGpuBridge() {
     if (!gpu) {
         auto index = device->AcquireGpuQueue();
         try {
@@ -20,5 +19,7 @@ void AnyBox::Graphics::Queue::SubmitGpu(std::span<const VkCommandBuffer> command
             throw;
         }
     }
-    gpu->Submit(commands);
+    return *gpu;
 }
+
+void AnyBox::Graphics::Queue::SubmitGpu(std::span<const VkCommandBuffer> commands) { auto lock = lockCommands(); getGpuBridge().Submit(commands); }

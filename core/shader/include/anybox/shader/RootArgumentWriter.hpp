@@ -21,6 +21,7 @@ public:
     RootArgumentWriter(const RootArgumentPlan& plan, std::span<const std::uint32_t> registers);
     void Write(const Graphics::Commands::RootState& state, IRootResources& resources, std::span<std::uint32_t> destination) const;
     std::uint32_t GetWordCount() const noexcept { return wordCount; }
+    bool RequiresVolatileTables(const Graphics::Container::RootSignatureLayout& root) const;
 
 private:
     struct Copy {

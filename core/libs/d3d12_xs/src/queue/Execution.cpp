@@ -20,6 +20,7 @@ void AnyBox::Graphics::Queue::ExecuteCommandLists(Queue* self, std::uint32_t cou
         sorted = std::span(expanded).subspan(count);
     }
     auto type = self->description.Type;
+    bool hasGpu = false;
     if (static_cast<std::uint32_t>(type) == 0x10) type = D3D12_COMMAND_LIST_TYPE_COPY;
     for (std::uint32_t index = 0; index < count; ++index) {
         auto* list = CommandList::From(lists[index]);
@@ -27,6 +28,7 @@ void AnyBox::Graphics::Queue::ExecuteCommandLists(Queue* self, std::uint32_t cou
         if (!list->IsClosed()) throw std::logic_error("Recording command list cannot be executed");
         if (list->GetNativeType() != type) throw std::invalid_argument("Command list and queue types differ");
         native[index] = list->GetHost();
+        hasGpu |= list->GetGpuRecording() != nullptr;
     }
     if (count > 1) {
         auto values = sorted.first(count);
@@ -35,5 +37,6 @@ void AnyBox::Graphics::Queue::ExecuteCommandLists(Queue* self, std::uint32_t cou
         if (std::ranges::adjacent_find(values) != values.end()) throw std::runtime_error("Repeated command lists within one batch are not implemented");
     }
     auto lock = self->lockCommands();
-    self->host->ExecuteCommandLists(count, count == 0 ? nullptr : native.data());
+    if (hasGpu) self->executeGpu(std::span(lists, count), native.first(count));
+    else self->host->ExecuteCommandLists(count, count == 0 ? nullptr : native.data());
 }

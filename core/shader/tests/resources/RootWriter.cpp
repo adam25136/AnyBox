@@ -55,6 +55,13 @@ void CheckRootWriter() {
     state.Write(2, 0, pointer);
     std::array registers{18u, 7u, 5u, 11u, 8u, 3u, 14u, 6u, 12u};
     RootArgumentWriter writer(plan, registers);
+    Fixtures::Require(!writer.RequiresVolatileTables(root));
+    auto legacy = root;
+    legacy.version = 1;
+    Fixtures::Require(writer.RequiresVolatileTables(legacy));
+    auto volatileRoot = root;
+    volatileRoot.parameters[2].ranges[0].flags = 1;
+    Fixtures::Require(writer.RequiresVolatileTables(volatileRoot));
     std::array<std::uint32_t, 9> destination{};
     Resources resources;
     writer.Write(state, resources, destination);
@@ -75,5 +82,6 @@ void CheckRootWriter() {
     AnyBox::Graphics::Commands::RootState wrongState(wrongRoot);
     Fixtures::Reject<std::invalid_argument>([&] { selected.Write(wrongState, resources, output); });
     RootArgumentWriter empty(plan, {});
+    Fixtures::Require(!empty.RequiresVolatileTables(legacy));
     empty.Write(state, resources, {});
 }

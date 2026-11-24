@@ -42,6 +42,7 @@ public:
     std::shared_ptr<const Mapping> Register(std::uint64_t guest, std::uint64_t size, std::uint64_t device, std::shared_ptr<void> lifetime);
     std::shared_ptr<const Mapping> Resolve(std::uint64_t address, std::uint64_t bytes = 1) const;
     Snapshot Capture() const;
+    std::uint64_t GetGeneration() const;
 
 private:
     std::shared_ptr<AddressState> state;

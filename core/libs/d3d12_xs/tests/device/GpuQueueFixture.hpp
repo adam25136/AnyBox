@@ -38,8 +38,8 @@ struct QueueRelease {
 };
 using QueueOwner = std::unique_ptr<Queue, QueueRelease>;
 
-inline QueueOwner CreateGpuQueue(Device* device) {
-    D3D12_COMMAND_QUEUE_DESC description{D3D12_COMMAND_LIST_TYPE_DIRECT, 0, D3D12_COMMAND_QUEUE_FLAG_NONE, 0};
+inline QueueOwner CreateGpuQueue(Device* device, D3D12_COMMAND_LIST_TYPE type = D3D12_COMMAND_LIST_TYPE_DIRECT) {
+    D3D12_COMMAND_QUEUE_DESC description{type, 0, D3D12_COMMAND_QUEUE_FLAG_NONE, 0};
     void* output = nullptr;
     Require(Method<decltype(&Device::CreateCommandQueue)>(device, 8)(device, &description, QueueId, &output) == S_OK && output, "GPU queue bridge wrapper creation failed");
     return QueueOwner(static_cast<Queue*>(output));
@@ -54,12 +54,12 @@ struct EventRelease {
 
 class GpuQueueFixture {
 public:
-    explicit GpuQueueFixture(Device* device) : event(CreateEventW(nullptr, FALSE, FALSE, nullptr)) {
+    explicit GpuQueueFixture(Device* device, D3D12_COMMAND_LIST_TYPE type = D3D12_COMMAND_LIST_TYPE_DIRECT) : event(CreateEventW(nullptr, FALSE, FALSE, nullptr)) {
         Require(event != nullptr, "GPU queue bridge completion event creation failed");
         void* output = nullptr;
         Require(Method<decltype(&Device::CreateFence)>(device, 36)(device, 0, D3D12_FENCE_FLAG_SHARED, FenceId, &output) == S_OK && output, "GPU queue bridge completion fence creation failed");
         fence.reset(static_cast<Fence*>(output));
-        queue = CreateGpuQueue(device);
+        queue = CreateGpuQueue(device, type);
     }
     Queue& GetQueue() const noexcept { return *queue; }
     Fence& GetFence() const noexcept { return *fence; }

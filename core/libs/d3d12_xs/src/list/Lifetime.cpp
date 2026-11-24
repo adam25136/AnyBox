@@ -1,5 +1,6 @@
 #include "List.hpp"
 #include "Compute.hpp"
+#include "Gpu.hpp"
 #include "../pipeline/State.hpp"
 #include <stdexcept>
 
@@ -16,6 +17,7 @@ AnyBox::Graphics::CommandList::CommandList(ID3D12GraphicsCommandList* host, Devi
 }
 
 AnyBox::Graphics::CommandList::~CommandList() {
+    delete gpu;
     if (pipeline) PipelineState::Release(pipeline);
     delete compute;
     if (synchronizationHost) synchronizationHost->Release();

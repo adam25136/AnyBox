@@ -1,5 +1,6 @@
 #include "List.hpp"
 #include "Compute.hpp"
+#include "Gpu.hpp"
 #include "../pipeline/State.hpp"
 #include <anybox/graphics/commands/Inline.hpp>
 #include <stdexcept>
@@ -58,12 +59,13 @@ void AnyBox::Graphics::CommandList::flushGuestCommands() {
     auto* arguments = compute ? &compute->GetArguments() : nullptr;
     std::array<PipelineState*, std::tuple_size_v<decltype(inlineCommands)> / Commands::PipelineWordCount> retained;
     PipelineReferences references(retained);
+    auto* selected = pipeline;
     Commands::InlineReader validation(words);
     while (!validation.Empty()) {
         auto command = validation.Next(arguments);
-        if (std::holds_alternative<Commands::Dispatch>(command)) throw std::runtime_error("Xbox inline compute dispatch execution is not implemented");
+        if (auto* dispatch = std::get_if<Commands::Dispatch>(&command)) validateDispatch(selected, dispatch->groups);
         if (auto* binding = std::get_if<Commands::PipelineBind>(&command)) {
-            auto* selected = PipelineState::From(reinterpret_cast<void*>(static_cast<std::uintptr_t>(binding->address)), device);
+            selected = PipelineState::From(reinterpret_cast<void*>(static_cast<std::uintptr_t>(binding->address)), device);
             if (guest.type != D3D12_COMMAND_LIST_TYPE_DIRECT && guest.type != D3D12_COMMAND_LIST_TYPE_COMPUTE) throw std::runtime_error("Inline pipeline binding is not implemented for this command list type");
             references.Retain(selected);
         }
@@ -73,6 +75,7 @@ void AnyBox::Graphics::CommandList::flushGuestCommands() {
         auto command = reader.Next(arguments);
         if (auto* update = std::get_if<Commands::RootWrite>(&command)) arguments->Write(update->parameter, update->offset, update->words);
         else if (auto* binding = std::get_if<Commands::PipelineBind>(&command)) bindPipeline(PipelineState::From(reinterpret_cast<void*>(static_cast<std::uintptr_t>(binding->address)), device));
+        else if (auto* dispatch = std::get_if<Commands::Dispatch>(&command)) recordDispatch(dispatch->groups);
     }
     guest.commandWrite = inlineCommands.data();
 }

@@ -11,6 +11,7 @@ public:
     RootBufferValue ResolveDescriptor(const BufferBinding& binding, std::uint64_t address) override;
     RootBufferValue ResolveTable(const BufferBinding& binding, std::uint32_t tableAddress, std::uint32_t descriptorOffset) override;
     std::span<const std::shared_ptr<const Graphics::Buffers::Mapping>> GetMappings() const noexcept { return std::span(mappings).first(count); }
+    void Reset() noexcept { for (std::size_t index = 0; index < count; ++index) mappings[index].reset(); count = 0; }
 
 private:
     static void checkBinding(const BufferBinding& binding);

@@ -1,5 +1,6 @@
 #include "List.hpp"
 #include "Compute.hpp"
+#include "Gpu.hpp"
 #include "../pipeline/State.hpp"
 #include <stdexcept>
 #include <memory>
@@ -7,6 +8,7 @@
 HRESULT AnyBox::Graphics::CommandList::Close(CommandList* self) {
     if (self->IsClosed()) throw std::logic_error("Command list is already closed");
     self->flushGuestCommands();
+    if (self->gpu) self->gpu->Close();
     auto result = self->host->Close();
     CheckGraphicsResult(result, "ID3D12GraphicsCommandList::Close");
     self->state |= closedBit;
@@ -28,6 +30,8 @@ HRESULT AnyBox::Graphics::CommandList::Reset(CommandList* self, void* allocator,
     auto result = self->host->Reset(next->GetHost(), nativePipeline);
     CheckGraphicsResult(result, "ID3D12GraphicsCommandList::Reset");
 
+    delete self->gpu;
+    self->gpu = nullptr;
     Allocator::Release(self->allocator);
     self->allocator = heldAllocator.release();
     self->state &= ~closedBit;

@@ -1,4 +1,5 @@
 #include "List.hpp"
+#include "Gpu.hpp"
 #include <stdexcept>
 #include <utility>
 
@@ -45,6 +46,7 @@ void AnyBox::Graphics::CommandList::synchronize(bool top, std::uint32_t flags, s
     flushGuestCommands();
     ValidateFlags(guest.type, top, flags, control);
     ValidateRange(address, size);
+    if (gpu) { gpu->Barrier(); return; }
     D3D12_GLOBAL_BARRIER barrier{D3D12_BARRIER_SYNC_ALL, D3D12_BARRIER_SYNC_ALL, D3D12_BARRIER_ACCESS_COMMON, D3D12_BARRIER_ACCESS_COMMON};
     D3D12_BARRIER_GROUP group{};
     group.Type = D3D12_BARRIER_TYPE_GLOBAL;
