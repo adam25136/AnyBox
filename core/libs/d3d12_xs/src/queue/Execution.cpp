@@ -34,5 +34,6 @@ void AnyBox::Graphics::Queue::ExecuteCommandLists(Queue* self, std::uint32_t cou
         std::ranges::sort(values, std::less<ID3D12CommandList*>{});
         if (std::ranges::adjacent_find(values) != values.end()) throw std::runtime_error("Repeated command lists within one batch are not implemented");
     }
+    auto lock = self->lockCommands();
     self->host->ExecuteCommandLists(count, count == 0 ? nullptr : native.data());
 }

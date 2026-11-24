@@ -2,6 +2,9 @@
 
 #include "../device/Device.hpp"
 #include "../object/Lifetime.hpp"
+#include <span>
+
+namespace AnyBox::Vulkan { class QueueBridge; }
 
 namespace AnyBox::Graphics {
 inline constexpr Guid QueueId{0x0EC870A6, 0x5D7E, 0x4C22, {0x8C, 0xFC, 0x5B, 0xAA, 0xE0, 0x76, 0x16, 0xED}};
@@ -13,6 +16,7 @@ public:
     ~Queue();
     static constexpr std::size_t GetVtableOffset() { return offsetof(Queue, vtable); }
     ID3D12CommandQueue* GetHost() const noexcept { return host; }
+    void SubmitGpu(std::span<const VkCommandBuffer> commands);
     void SetXboxSelection(std::uint32_t selection) noexcept { xboxSelection = selection; }
     static bool Supports(const Guid& interfaceId) noexcept;
     static D3D12_COMMAND_QUEUE_DESC GetDescription(Queue* self);
@@ -27,6 +31,7 @@ public:
 
 private:
     friend class ObjectLifetime<Queue>;
+    std::unique_lock<std::mutex> lockCommands();
     const ObjectTable* vtable;
     std::atomic<std::uint32_t>& getReferences() noexcept { return references; }
     std::atomic<std::uint32_t> references{1};
@@ -34,6 +39,9 @@ private:
     Device* device;
     D3D12_COMMAND_QUEUE_DESC description;
     std::uint32_t xboxSelection = 0;
+    std::mutex commandMutex;
+    Vulkan::QueueBridge* gpu = nullptr;
+    std::uint32_t gpuQueueIndex = UINT32_MAX;
 };
 
 static_assert(std::is_standard_layout_v<Queue>);

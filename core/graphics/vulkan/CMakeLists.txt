@@ -2,6 +2,7 @@ add_library(anybox_vulkan STATIC src/Context.cpp src/Selection.cpp src/Functions
 target_sources(anybox_vulkan PRIVATE src/Buffer.cpp src/Allocation.cpp)
 target_sources(anybox_vulkan PRIVATE src/ComputePipeline.cpp)
 target_sources(anybox_vulkan PRIVATE src/Timeline.cpp src/Queue.cpp)
+target_sources(anybox_vulkan PRIVATE src/QueueBridge.cpp src/QueueBridgeSubmit.cpp src/QueueBridgeLifetime.cpp)
 target_sources(anybox_vulkan PRIVATE src/Adapter.cpp)
 target_sources(anybox_vulkan PRIVATE src/image/Lifetime.cpp src/image/Creation.cpp src/image/Allocation.cpp src/image/Properties.cpp)
 target_sources(anybox_vulkan PRIVATE src/image/View.cpp)

@@ -14,6 +14,8 @@
 #include <type_traits>
 #include <anybox/texture/AddressSpace.hpp>
 #include <anybox/buffer/AddressSpace.hpp>
+#include <anybox/vulkan/Context.hpp>
+#include <bit>
 
 namespace AnyBox::Vulkan { class Context; class Buffer; }
 
@@ -54,6 +56,21 @@ public:
     Texture::AddressSpace& GetTextureAddresses() noexcept { return textureAddresses; }
     Buffers::AddressSpace& GetBufferAddresses() noexcept { return bufferAddresses; }
     Buffers::AddressSpace& GetDescriptorAddresses() noexcept { return descriptorAddresses; }
+    std::uint32_t AcquireGpuQueue() {
+        auto count = gpuContext->GetQueueCount();
+        if (count == 0 || count > 32) throw std::logic_error("Vulkan queue count cannot be represented by the device allocator");
+        auto available = count == 32 ? UINT32_MAX : (1u << count) - 1;
+        auto used = gpuQueues.load(std::memory_order_relaxed);
+        for (;;) {
+            auto free = available & ~used;
+            if (free == 0) throw std::runtime_error("No independent Vulkan queue is available");
+            auto index = static_cast<std::uint32_t>(std::countr_zero(free));
+            if (gpuQueues.compare_exchange_weak(used, used | (1u << index), std::memory_order_acq_rel)) return index;
+        }
+    }
+    void ReleaseGpuQueue(std::uint32_t index) noexcept {
+        if (index >= gpuContext->GetQueueCount() || (gpuQueues.fetch_and(~(1u << index), std::memory_order_release) & (1u << index)) == 0) std::terminate();
+    }
     bool Matches(const D3D12XboxCreateDeviceParameters& value) const noexcept;
     static std::uint32_t TryAddRef(Device* self);
     static std::uint32_t GetNodeCount(Device* self);
@@ -92,6 +109,7 @@ private:
     const DeviceTable* vtable;
     std::atomic<std::uint32_t> references{1};
     std::atomic<std::uint32_t> computeQueues{0};
+    std::atomic<std::uint32_t> gpuQueues{0};
     ID3D12Device* host;
     D3D12XboxCreateDeviceParameters parameters;
     std::mutex dxgiMutex;

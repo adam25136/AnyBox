@@ -19,12 +19,14 @@ HRESULT AnyBox::Graphics::Queue::GetClockCalibration(Queue* self, std::uint64_t*
 
 void AnyBox::Graphics::Queue::SetMarker(Queue* self, std::uint32_t metadata, const void* data, std::uint32_t size) {
     if (!data && size != 0) throw std::invalid_argument("Command queue marker payload is null");
+    auto lock = self->lockCommands();
     self->host->SetMarker(metadata, data, size);
 }
 
 void AnyBox::Graphics::Queue::BeginEvent(Queue* self, std::uint32_t metadata, const void* data, std::uint32_t size) {
     if (!data && size != 0) throw std::invalid_argument("Command queue event payload is null");
+    auto lock = self->lockCommands();
     self->host->BeginEvent(metadata, data, size);
 }
 
-void AnyBox::Graphics::Queue::EndEvent(Queue* self) { self->host->EndEvent(); }
+void AnyBox::Graphics::Queue::EndEvent(Queue* self) { auto lock = self->lockCommands(); self->host->EndEvent(); }

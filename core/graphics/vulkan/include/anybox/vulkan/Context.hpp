@@ -29,6 +29,7 @@ public:
     VkDeviceSize GetHostPointerAlignment() const noexcept { return hostPointerAlignment; }
     std::uint32_t GetQueueFamily() const noexcept { return queueFamily; }
     VkQueue GetQueue(std::uint32_t index) const;
+    std::uint32_t GetQueueCount() const noexcept { return static_cast<std::uint32_t>(queues.size()); }
     VkExternalBufferProperties GetExternalBufferProperties(VkBufferUsageFlags usage) const;
     VkImageFormatProperties GetImageFormatProperties(const VkPhysicalDeviceImageFormatInfo2& description) const;
     bool SupportsCubeArrays() const noexcept { return cubeArrays; }

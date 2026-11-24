@@ -72,6 +72,8 @@ int main(int argc, char** argv) {
             CheckConstantViews(device);
             CheckRawShaderViews(device);
             CheckVulkanTimeline(device);
+            CheckGpuQueue(device);
+            CheckGpuQueueSlots(device);
             CheckInlineCommands(device);
             CheckDxgi(device);
             CheckFrameConfiguration(device);
