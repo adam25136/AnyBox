@@ -4,6 +4,7 @@
 #include "Fixtures.hpp"
 #include "Target.hpp"
 #include <anybox/vulkan/ComputePipeline.hpp>
+#include <anybox/shader/runtime/MemoryTable.hpp>
 #include <BdaAbi.hpp>
 #include <cstring>
 #include <vector>
@@ -15,29 +16,32 @@ void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::Comput
     if (!context.SupportsByteStorage()) throw std::runtime_error("DXIL BDA test requires Vulkan byte storage support");
     constexpr auto usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
     constexpr auto properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    auto input = Buffer::Allocate(context, 64, usage, properties);
-    auto output = Buffer::Allocate(context, expected.size_bytes(), usage, properties);
+    auto input = std::make_shared<Buffer>(Buffer::Allocate(context, 64, usage, properties));
+    auto output = std::make_shared<Buffer>(Buffer::Allocate(context, expected.size_bytes(), usage, properties));
     auto faults = Buffer::Allocate(context, Abi::FaultBufferBytes, usage, properties);
-    struct PageTable {
-        Abi::Header header;
-        std::array<Abi::Range, 2> ranges;
-    };
-    static_assert(sizeof(PageTable) == 80);
-    auto table = Buffer::Allocate(context, sizeof(PageTable), usage, properties);
+    AnyBox::Graphics::Buffers::AddressSpace addresses;
     auto outputPermissions = Abi::Write | (outputData.empty() ? 0 : Abi::Read);
-    PageTable pages{{Abi::Version, 2, sizeof(Abi::Range), 0}, {{{0x100000000, 0x100000040, input.GetAddress(), Abi::Read, 0}, {0x200000000, 0x200000000 + output.GetSize(), output.GetAddress(), outputPermissions, 0}}}};
-    for (std::size_t index = 0; index < input.Map().size(); ++index) input.Map()[index] = static_cast<std::byte>((index * 3 + 7) & 255);
+    using AnyBox::Shader::Runtime::MemoryBinding;
+    std::array bindings{
+        MemoryBinding{addresses.Register(0x100000000, 48, input->GetAddress(), input), Abi::Read},
+        MemoryBinding{addresses.Register(0x100000020, 32, input->GetAddress() + 32, input), Abi::Read},
+        MemoryBinding{addresses.Register(0x100000010, 16, input->GetAddress() + 16, input), Abi::Read},
+        MemoryBinding{addresses.Register(0x200000000, output->GetSize(), output->GetAddress(), output), outputPermissions}
+    };
+    AnyBox::Shader::Runtime::MemoryTable pages(bindings);
+    auto table = Buffer::Allocate(context, pages.GetByteSize(), usage, properties);
+    for (std::size_t index = 0; index < input->Map().size(); ++index) input->Map()[index] = static_cast<std::byte>((index * 3 + 7) & 255);
     if (!inputData.empty()) {
-        if (inputData.size() != input.GetSize()) throw std::runtime_error("DXIL GPU test input data has an invalid size");
-        std::memcpy(input.Map().data(), inputData.data(), inputData.size());
+        if (inputData.size() != input->GetSize()) throw std::runtime_error("DXIL GPU test input data has an invalid size");
+        std::memcpy(input->Map().data(), inputData.data(), inputData.size());
     }
-    std::memset(output.Map().data(), 255, output.Map().size());
+    std::memset(output->Map().data(), 255, output->Map().size());
     if (!outputData.empty()) {
-        if (outputData.size() != output.GetSize()) throw std::runtime_error("DXIL GPU test output data has an invalid size");
-        std::memcpy(output.Map().data(), outputData.data(), outputData.size());
+        if (outputData.size() != output->GetSize()) throw std::runtime_error("DXIL GPU test output data has an invalid size");
+        std::memcpy(output->Map().data(), outputData.data(), outputData.size());
     }
     std::memset(faults.Map().data(), 0, faults.Map().size());
-    std::memcpy(table.Map().data(), &pages, sizeof(pages));
+    pages.Write(table.Map());
     Descriptors descriptors(context, table, faults);
     std::array layouts{descriptors.GetLayout()};
     std::array sets{descriptors.GetSet()};
@@ -66,12 +70,12 @@ void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::Comput
     if (fault.state != Abi::FaultState::Empty) throw std::runtime_error("DXIL BDA GPU test recorded fault " + std::to_string(static_cast<unsigned>(fault.reason)));
     for (std::size_t index = 0; index < expected.size(); ++index) {
         std::uint32_t value = 0;
-        std::memcpy(&value, output.Map().data() + index * sizeof(value), sizeof(value));
+        std::memcpy(&value, output->Map().data() + index * sizeof(value), sizeof(value));
         if (value != expected[index]) {
             std::string first;
             for (std::size_t word = 0; word < 3 && word < expected.size(); ++word) {
                 std::uint32_t observed = 0;
-                std::memcpy(&observed, output.Map().data() + word * sizeof(observed), sizeof(observed));
+                std::memcpy(&observed, output->Map().data() + word * sizeof(observed), sizeof(observed));
                 first += " " + std::to_string(observed);
             }
             throw std::runtime_error("DXIL GPU result mismatch at " + std::to_string(index) + ": " + std::to_string(value) + " != " + std::to_string(expected[index]) + "; first words:" + first);

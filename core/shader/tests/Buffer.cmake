@@ -24,6 +24,7 @@ target_include_directories(shader_buffer_lowering_tests PRIVATE src/dxil ../grap
 target_include_directories(shader_buffer_lowering_tests SYSTEM PRIVATE "${PROJECT_SOURCE_DIR}/3rdparty/dxil-spirv/util" "${PROJECT_SOURCE_DIR}/3rdparty/dxil-spirv/bc" "${PROJECT_SOURCE_DIR}/3rdparty/dxil-spirv/debug")
 target_link_libraries(shader_buffer_lowering_tests PRIVATE anybox_dxil_lowering llvm-bc anybox_test_support anybox_vulkan_test_support)
 target_link_libraries(shader_buffer_lowering_tests PRIVATE anybox_native_shader libdeflate_static)
+target_link_libraries(shader_buffer_lowering_tests PRIVATE anybox_shader_runtime)
 target_compile_definitions(shader_buffer_lowering_tests PRIVATE ANYBOX_LIBRARY_NAME="shader_buffer_lowering")
 set_target_properties(shader_buffer_lowering_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${ANYBOX_RUNTIME_DIRECTORY}")
 anybox_add_compiler_runtime(shader_buffer_lowering_tests)

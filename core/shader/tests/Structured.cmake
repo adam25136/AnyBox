@@ -3,6 +3,7 @@ target_sources(shader_structured_flow_tests PRIVATE tests/structured/Typed.cpp t
 target_sources(shader_structured_flow_tests PRIVATE tests/structured/FloatLoop.cpp)
 target_include_directories(shader_structured_flow_tests PRIVATE src/dxil ../graphics/container/tests ../graphics/vulkan/tests)
 target_link_libraries(shader_structured_flow_tests PRIVATE anybox_dxil_lowering anybox_vulkan_test_support anybox_test_support)
+target_link_libraries(shader_structured_flow_tests PRIVATE anybox_shader_runtime)
 target_compile_definitions(shader_structured_flow_tests PRIVATE ANYBOX_LIBRARY_NAME="shader_structured_flow")
 set_target_properties(shader_structured_flow_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${ANYBOX_RUNTIME_DIRECTORY}")
 anybox_add_compiler_runtime(shader_structured_flow_tests)

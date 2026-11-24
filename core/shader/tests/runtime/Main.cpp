@@ -4,6 +4,8 @@
 #include "Commands.hpp"
 #include <cstring>
 
+void CheckMemoryTable();
+
 namespace {
 constexpr auto Source = R"(#version 450
 #extension GL_EXT_buffer_reference : require
@@ -15,6 +17,7 @@ void main() { args.outputBuffer.value = args.value; }
 
 void Check() {
     using namespace AnyBox;
+    CheckMemoryTable();
     Vulkan::Context context(0);
     Shader::ComputeArtifact artifact;
     artifact.sourceHash = Shader::HashShader(std::as_bytes(std::span(Source, std::strlen(Source))));
