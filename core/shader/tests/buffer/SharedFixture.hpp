@@ -21,6 +21,7 @@ public:
         auto* firstType = LLVMBC::ArrayType::get(floating, 64);
         auto* secondType = LLVMBC::ArrayType::get(LLVMBC::ArrayType::get(word, 32), 2);
         auto* first = context.construct<LLVMBC::GlobalVariable>(LLVMBC::PointerType::get(firstType, space), LLVMBC::GlobalVariable::InternalLinkage, false);
+        firstGlobal = first;
         auto* second = context.construct<LLVMBC::GlobalVariable>(LLVMBC::PointerType::get(secondType, 3), LLVMBC::GlobalVariable::InternalLinkage, false);
         first->set_initializer(LLVMBC::UndefValue::get(firstType));
         second->set_initializer(LLVMBC::UndefValue::get(secondType));
@@ -69,6 +70,10 @@ public:
         AnyBox::Shader::Dxil::FunctionLowering(program, layout, bindings).Run(*function);
         return program;
     }
+    void InitializeShared() {
+        auto* type = firstGlobal->getType()->getPointerElementType();
+        firstGlobal->set_initializer(source.Context().construct<LLVMBC::ConstantAggregateZero>(type));
+    }
 
 private:
     LLVMBC::ConstantInt* integer(std::uint32_t value) { return LLVMBC::ConstantInt::get(LLVMBC::Type::getInt32Ty(source.Context()), value); }
@@ -80,7 +85,10 @@ private:
     }
     LLVMBC::Value* binary(LLVMBC::Value* left, LLVMBC::Value* right, LLVMBC::Instruction::BinaryOps operation) { return emit<LLVMBC::BinaryOperator>(left, right, operation); }
     LLVMBC::Value* element(LLVMBC::Value* pointer, LLVMBC::Type* type, unsigned space, LLVMBC::Vector<LLVMBC::Value*> indices) {
+        bool constant = pointer->get_value_kind() == LLVMBC::ValueKind::Global;
+        for (auto* index : indices) constant &= index->get_value_kind() == LLVMBC::ValueKind::ConstantInt;
         indices.insert(indices.begin(), pointer);
+        if (constant) return source.Context().construct<LLVMBC::ConstantExpr>(LLVMBC::Instruction::GetElementPtr, LLVMBC::PointerType::get(type, space), std::move(indices));
         return emit<LLVMBC::GetElementPtrInst>(LLVMBC::PointerType::get(type, space), std::move(indices), true);
     }
     LLVMBC::CallInst* call(const std::string& name, unsigned id, LLVMBC::Type* result, LLVMBC::Vector<LLVMBC::Value*> arguments) {
@@ -101,5 +109,6 @@ private:
     }
     ResourceTests::Fixture source;
     LLVMBC::BasicBlock* block;
+    LLVMBC::GlobalVariable* firstGlobal;
 };
 }

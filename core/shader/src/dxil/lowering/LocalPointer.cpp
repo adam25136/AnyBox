@@ -16,6 +16,12 @@ LocalLowering::Pointer LocalLowering::resolve(const LLVMBC::Value& value, Scalar
         pointer = {sharedAllocation(*variable), value.getType()->getPointerElementType(), &builder.ConstantU64(0), 0};
     } else if (auto* instruction = LLVMBC::dyn_cast<LLVMBC::GetElementPtrInst>(&value)) {
         pointer = element(*instruction, scalar);
+    } else if (auto* expression = LLVMBC::dyn_cast<LLVMBC::ConstantExpr>(&value)) {
+        if (expression->getOpcode() != LLVMBC::Instruction::GetElementPtr) throw std::runtime_error("DXIL constant pointer operation is not implemented");
+        LLVMBC::Vector<LLVMBC::Value*> operands;
+        for (unsigned index = 0; index < expression->getNumOperands(); ++index) operands.push_back(expression->getOperand(index));
+        LLVMBC::GetElementPtrInst instruction(expression->getType(), std::move(operands), false);
+        pointer = element(instruction, scalar);
     } else {
         throw std::runtime_error("DXIL pointer does not reference a supported memory allocation: kind=" + std::to_string(static_cast<unsigned>(value.get_value_kind())));
     }
