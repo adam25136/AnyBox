@@ -34,6 +34,7 @@ void CheckBufferArgumentGpu(AnyBox::Vulkan::Context& context);
 void CheckLegacyHalfGpu(AnyBox::Vulkan::Context& context);
 void CheckFloatMinMax(AnyBox::Vulkan::Context& context);
 void CheckFloatMad(AnyBox::Vulkan::Context& context);
+void CheckFloatDot(AnyBox::Vulkan::Context& context);
 void CheckWaveFirstGpu(AnyBox::Vulkan::Context& context);
 void CheckWaveCountGpu(AnyBox::Vulkan::Context& context);
 void CheckWaveBuiltinsGpu(AnyBox::Vulkan::Context& context);

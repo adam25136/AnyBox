@@ -20,6 +20,9 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "dx.op.legacyF16ToF32") return legacyHalf(instruction);
     if (identifier == "dx.op.binary.f32") return floatBinaryIntrinsic(instruction);
     if (identifier == "dx.op.tertiary.f32") return floatTernaryIntrinsic(instruction);
+    if (identifier == "dx.op.dot2.f32") return floatDot(instruction, 2);
+    if (identifier == "dx.op.dot3.f32") return floatDot(instruction, 3);
+    if (identifier == "dx.op.dot4.f32") return floatDot(instruction, 4);
     if (identifier == "dx.op.waveIsFirstLane") return waveFirst(instruction);
     if (identifier == "dx.op.waveGetLaneIndex") return waveBuiltin(instruction, 111);
     if (identifier == "dx.op.waveGetLaneCount") return waveBuiltin(instruction, 112);

@@ -39,6 +39,7 @@ target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/WideBinary.cpp src
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/Intrinsic.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/GlobalLoad.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/GlobalStore.cpp)
+target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/FloatDot.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/TypedLoad.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/Barrier.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/Aggregate.cpp)
