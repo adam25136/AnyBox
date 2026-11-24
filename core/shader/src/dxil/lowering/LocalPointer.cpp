@@ -13,7 +13,8 @@ LocalLowering::Pointer LocalLowering::resolve(const LLVMBC::Value& value, Scalar
     if (auto found = allocations.find(&value); found != allocations.end()) {
         pointer = {found->second, value.getType()->getPointerElementType(), &builder.ConstantU64(0), 0};
     } else if (auto* variable = LLVMBC::dyn_cast<LLVMBC::GlobalVariable>(&value)) {
-        pointer = {sharedAllocation(*variable), value.getType()->getPointerElementType(), &builder.ConstantU64(0), 0};
+        auto allocation = variable->isConstant() ? constantAllocation(*variable) : sharedAllocation(*variable);
+        pointer = {std::move(allocation), value.getType()->getPointerElementType(), &builder.ConstantU64(0), 0};
     } else if (auto* instruction = LLVMBC::dyn_cast<LLVMBC::GetElementPtrInst>(&value)) {
         pointer = element(*instruction, scalar);
     } else if (auto* conversion = LLVMBC::dyn_cast<LLVMBC::CastInst>(&value)) {

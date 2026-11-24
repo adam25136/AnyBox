@@ -2,6 +2,8 @@
 #include "Fixtures.hpp"
 #include "ComputeCompiler.hpp"
 #include "Target.hpp"
+
+namespace BufferTests { void CheckGlobalConstants(AnyBox::Vulkan::Context& context); }
 #include "TransferFixture.hpp"
 #include "FloatFixture.hpp"
 #include "LocalFixture.hpp"
@@ -54,6 +56,7 @@ void BufferTests::CheckSpirv() {
     CheckFloats(context);
     CheckFloatTransfers(context);
     CheckLocals(context);
+    CheckGlobalConstants(context);
     CheckSharedGpu(context);
     CheckConstants(context);
     CheckBitFields(context);

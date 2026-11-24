@@ -52,6 +52,10 @@ MemoryFlags LocalLowering::flags(bool shared) {
 IrValue& LocalLowering::Load(const LLVMBC::LoadInst& instruction, ScalarLowering& scalar) {
     auto pointer = resolve(*instruction.getPointerOperand(), scalar);
     auto location = access(pointer, *instruction.getType());
+    if (pointer.allocation.constants) {
+        auto& value = constantWord(pointer, location);
+        return instruction.getType()->getTypeID() == LLVMBC::Type::TypeID::FloatTyID ? builder.BitCastF32(value) : value;
+    }
     if (pointer.allocation.shared) {
         auto& value = builder.Emit(IrOpcode::LoadSharedU32, IrType::U32, {&location.offset, &location.active}, flags(true));
         return instruction.getType()->getTypeID() == LLVMBC::Type::TypeID::FloatTyID ? builder.BitCastF32(value) : value;
@@ -64,6 +68,7 @@ IrValue& LocalLowering::Load(const LLVMBC::LoadInst& instruction, ScalarLowering
 void LocalLowering::store(const LLVMBC::StoreInst& instruction, ScalarLowering& scalar) {
     auto* source = instruction.getOperand(0);
     auto pointer = resolve(*instruction.getOperand(1), scalar);
+    if (pointer.allocation.constants) throw std::runtime_error("DXIL cannot write a constant global variable");
     auto location = access(pointer, *source->getType());
     auto& input = scalar.Get(*source);
     auto& value = input.Type() == IrType::F32 ? builder.BitCastU32(input) : input;

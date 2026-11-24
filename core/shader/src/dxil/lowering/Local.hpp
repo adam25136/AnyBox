@@ -5,6 +5,8 @@
 #include <instruction.hpp>
 #include <optional>
 #include <unordered_map>
+#include <memory>
+#include <vector>
 
 namespace AnyBox::Shader::Dxil {
 class ScalarLowering;
@@ -22,6 +24,7 @@ private:
         std::uint32_t base;
         std::uint32_t bytes;
         bool shared = false;
+        std::shared_ptr<const std::vector<std::uint32_t>> constants{};
     };
     struct Pointer {
         Allocation allocation;
@@ -40,6 +43,9 @@ private:
     Access access(const Pointer& pointer, const LLVMBC::Type& type);
     ShaderRecompiler::MemoryFlags flags(bool shared);
     Allocation sharedAllocation(const LLVMBC::GlobalVariable& variable);
+    Allocation constantAllocation(const LLVMBC::GlobalVariable& variable);
+    static void appendConstants(const LLVMBC::Value& value, const LLVMBC::Type& type, std::vector<std::uint32_t>& words);
+    IrValue& constantWord(const Pointer& pointer, const Access& access);
     void store(const LLVMBC::StoreInst& instruction, ScalarLowering& scalar);
     ShaderRecompiler::IrProgram& program;
     ShaderRecompiler::IrBuilder& builder;
