@@ -41,6 +41,14 @@ void FlowTests::CheckAggregates() {
     Fixtures::Require(extract(updated, wide, {1, 1}).ImmediateU64() == 0x123456789ABCDEF0);
     Fixtures::Require(extract(overwritten, word, {1, 0}).ImmediateU32() == 29);
     Fixtures::Require(extract(updated, word, {1, 0}).ImmediateU32() == 17);
+    auto* constantPair = context.construct<ConstantAggregate>(pair, Vector<Value*>{first, second});
+    auto* constantArray = context.construct<ConstantDataArray>(array, Vector<Value*>{constantPair, constantPair});
+    Fixtures::Require(extract(constantPair, wide, {1}).ImmediateU64() == 0x123456789ABCDEF0);
+    Fixtures::Require(extract(constantArray, word, {0, 0}).ImmediateU32() == 17);
+    auto* modified = Bitcode::InsertValue(context, *constantPair, *ConstantInt::get(word, 29), std::array<std::uint64_t, 1>{0});
+    Fixtures::Require(modified != nullptr);
+    Fixtures::Require(extract(modified, word, {0}).ImmediateU32() == 29);
+    Fixtures::Require(extract(modified, wide, {1}).ImmediateU64() == 0x123456789ABCDEF0);
     const std::array<std::uint64_t, 1> outside{2};
     Fixtures::Require(!Bitcode::InsertValue(context, *aggregate, *first, outside));
     Fixtures::Require(!Bitcode::InsertValue(context, *aggregate, *second, firstPath));

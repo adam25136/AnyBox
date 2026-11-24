@@ -5,7 +5,7 @@ using AnyBox::Shader::Dxil::ScalarLowering;
 
 unsigned ScalarLowering::width(const LLVMBC::Value& value) {
     auto* type = value.getType();
-    if (!type || !type->isIntegerTy()) throw std::runtime_error("DXIL scalar lowering requires an integer value");
+    if (!type || !type->isIntegerTy()) throw std::runtime_error("DXIL scalar lowering requires an integer value: kind=" + std::to_string(static_cast<unsigned>(value.get_value_kind())) + " type=" + std::to_string(type ? static_cast<unsigned>(type->getTypeID()) : 0));
     auto bits = type->getIntegerBitWidth();
     if (bits != 1 && bits != 8 && bits != 16 && bits != 32 && bits != 64) throw std::runtime_error("DXIL integer width is not implemented: " + std::to_string(bits));
     return bits;
