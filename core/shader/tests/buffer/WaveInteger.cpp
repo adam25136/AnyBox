@@ -24,7 +24,7 @@ void Check(AnyBox::Vulkan::Context& context, unsigned waveSize, bool prefix, std
         if (opcode == spv::OpGroupNonUniformShuffle) ++shuffles;
         if (opcode == spv::OpGroupNonUniformIAdd) {
             ++operations;
-            Fixtures::Require(shader.code[offset + 4] == (prefix ? spv::GroupOperationExclusiveScan : spv::GroupOperationReduce));
+            Fixtures::Require(shader.code[offset + 4] == static_cast<std::uint32_t>(prefix ? spv::GroupOperationExclusiveScan : spv::GroupOperationReduce));
         }
     }
     if (native && (operations != 1 || shuffles != 0)) throw std::runtime_error("Native integer wave operation was not reduced; prefix=" + std::to_string(prefix) + " operations=" + std::to_string(operations) + " shuffles=" + std::to_string(shuffles));
