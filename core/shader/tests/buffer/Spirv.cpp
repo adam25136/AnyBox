@@ -10,6 +10,7 @@
 #include <spirv/unified1/spirv.hpp>
 
 namespace BufferTests { void CheckGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::ComputeCompilation& shader, std::uint32_t expected); }
+void CheckRuntimeComputeMemory(AnyBox::Vulkan::Context& context);
 
 namespace {
 void CheckPackedField(AnyBox::Vulkan::Context& context, unsigned byteOffset, std::uint32_t expected) {
@@ -45,6 +46,7 @@ void CheckPackedField(AnyBox::Vulkan::Context& context, unsigned byteOffset, std
 
 void BufferTests::CheckSpirv() {
     AnyBox::Vulkan::Context context(0);
+    CheckRuntimeComputeMemory(context);
     CheckPackedField(context, 28, 0xBEBB);
     CheckPackedField(context, 30, 0xC4C1);
     CheckThreads(context);

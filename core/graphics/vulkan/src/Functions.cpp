@@ -36,6 +36,7 @@ void AnyBox::Vulkan::Context::loadDeviceFunctions() {
     ANYBOX_VULKAN_FUNCTION(endCommandBuffer, vkEndCommandBuffer);
     ANYBOX_VULKAN_FUNCTION(pipelineBarrier, vkCmdPipelineBarrier);
     ANYBOX_VULKAN_FUNCTION(copyBuffer, vkCmdCopyBuffer);
+    ANYBOX_VULKAN_FUNCTION(fillBuffer, vkCmdFillBuffer);
     ANYBOX_VULKAN_FUNCTION(createFence, vkCreateFence);
     ANYBOX_VULKAN_FUNCTION(destroyFence, vkDestroyFence);
     ANYBOX_VULKAN_FUNCTION(queueSubmit, vkQueueSubmit);

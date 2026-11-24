@@ -45,6 +45,7 @@ struct DeviceFunctions {
     PFN_vkEndCommandBuffer endCommandBuffer;
     PFN_vkCmdPipelineBarrier pipelineBarrier;
     PFN_vkCmdCopyBuffer copyBuffer;
+    PFN_vkCmdFillBuffer fillBuffer;
     PFN_vkCreateFence createFence;
     PFN_vkDestroyFence destroyFence;
     PFN_vkQueueSubmit queueSubmit;

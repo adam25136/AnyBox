@@ -1,5 +1,6 @@
 add_executable(shader_buffer_lowering_tests tests/buffer/Main.cpp tests/buffer/Evaluate.cpp tests/buffer/Spirv.cpp tests/buffer/Gpu.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Threads.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Runtime.cpp "${PROJECT_SOURCE_DIR}/tools/shader/Artifact.cpp")
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/TypedLoad.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Transfers.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Floats.cpp tests/buffer/FloatTransfers.cpp tests/buffer/Half.cpp tests/buffer/FloatMinMax.cpp)

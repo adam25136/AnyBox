@@ -8,9 +8,10 @@ ComputePipeline::ComputePipeline(AnyBox::Vulkan::Context& context, const Compute
     CheckRequirements(context, artifact);
     std::vector<VkDescriptorSetLayoutBinding> bindings;
     for (const auto& descriptor : artifact.descriptors) {
-        if (descriptor.kind != 59 && descriptor.kind != 60) throw std::runtime_error("Offline compute pipeline descriptor kind is not implemented");
+        if (descriptor.kind != MemoryTableBinding && descriptor.kind != FaultBufferBinding) throw std::runtime_error("Offline compute pipeline descriptor kind is not implemented");
         if (!descriptor.resources.empty()) throw std::runtime_error("Offline compute pipeline BDA descriptor contains unexpected resource indices");
         bindings.push_back({descriptor.kind, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr});
+        descriptorMask |= 1u << (descriptor.kind - MemoryTableBinding);
     }
     try {
         std::vector<VkDescriptorSetLayout> layouts;
