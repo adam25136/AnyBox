@@ -1,6 +1,7 @@
 #pragma once
 
 #include "QueueBridge.hpp"
+#include "ICompletionCheck.hpp"
 #include <mutex>
 
 namespace AnyBox::Vulkan {
@@ -33,6 +34,7 @@ public:
     VkCommandBuffer GetExecutable() const;
     void Close();
     void Retain(std::shared_ptr<void> resource);
+    void Verify(std::shared_ptr<ICompletionCheck> check);
 
 private:
     friend class CommandArena;
@@ -61,9 +63,11 @@ private:
 class CommandSubmission {
 public:
     ~CommandSubmission();
+    CommandSubmission(CommandSubmission&& other) noexcept;
     CommandSubmission(const CommandSubmission&) = delete;
     CommandSubmission& operator=(const CommandSubmission&) = delete;
     VkCommandBuffer GetCommands() const noexcept { return commands; }
+    VkCommandBuffer Validate(const CommandRecord& record) const;
 
 private:
     friend class CommandArena;

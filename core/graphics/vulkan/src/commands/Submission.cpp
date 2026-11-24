@@ -1,4 +1,5 @@
 #include "State.hpp"
+#include <utility>
 
 using namespace AnyBox::Vulkan;
 
@@ -20,7 +21,17 @@ CommandSubmission::CommandSubmission(std::shared_ptr<CommandArenaState> state, c
 }
 
 CommandSubmission::~CommandSubmission() {
+    if (!state) return;
     auto completion = queue.GetCompletion();
     auto& pending = state->pending[slot];
     if (pending.GetSource() != completion.GetSource() || completion.GetValue() > pending.GetValue()) pending = std::move(completion);
+}
+
+CommandSubmission::CommandSubmission(CommandSubmission&& other) noexcept : state(std::move(other.state)), lock(std::move(other.lock)), queue(other.queue), slot(other.slot), commands(std::exchange(other.commands, VK_NULL_HANDLE)) {}
+
+VkCommandBuffer CommandSubmission::Validate(const CommandRecord& record) const {
+    if (!state || record.state != state) throw std::invalid_argument("Command submission belongs to another arena");
+    state->Check(record.generation);
+    if (record.recording) throw std::logic_error("Recording command list cannot be submitted");
+    return record.commands;
 }

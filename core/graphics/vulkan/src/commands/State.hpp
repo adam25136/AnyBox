@@ -12,6 +12,7 @@ struct CommandArenaState {
     VkCommandPool pool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> buffers;
     std::vector<std::shared_ptr<void>> resources;
+    std::vector<std::shared_ptr<ICompletionCheck>> checks;
     std::array<Submission, 32> pending;
     std::uint64_t generation = 1;
     std::size_t cursor = 0;

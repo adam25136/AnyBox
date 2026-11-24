@@ -44,3 +44,11 @@ void CommandRecord::Retain(std::shared_ptr<void> resource) {
     if (!recording || !resource) throw std::invalid_argument("Vulkan command resource requires an open record and a nonnull owner");
     state->resources.push_back(std::move(resource));
 }
+
+void CommandRecord::Verify(std::shared_ptr<ICompletionCheck> check) {
+    if (!state) throw std::logic_error("Vulkan command record is empty");
+    std::scoped_lock lock(state->mutex);
+    state->Check(generation);
+    if (!recording || !check) throw std::invalid_argument("Vulkan completion check requires an open record and a nonnull owner");
+    state->checks.push_back(std::move(check));
+}

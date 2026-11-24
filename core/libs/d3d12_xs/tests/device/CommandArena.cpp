@@ -3,6 +3,14 @@
 #include <anybox/vulkan/Buffer.hpp>
 #include <cstring>
 
+namespace {
+class CompletionCounter : public AnyBox::Vulkan::ICompletionCheck {
+public:
+    void CheckCompletion() override { ++count; }
+    unsigned count = 0;
+};
+}
+
 void AnyBox::Graphics::Tests::CheckCommandArena(Device* device) {
     void* output = nullptr;
     Require(Method<decltype(&Device::CreateCommandAllocator)>(device, 9)(device, D3D12_COMMAND_LIST_TYPE_DIRECT, AllocatorId, &output) == S_OK && output, "Vulkan command allocator creation failed");
@@ -15,6 +23,8 @@ void AnyBox::Graphics::Tests::CheckCommandArena(Device* device) {
     std::weak_ptr<Vulkan::Buffer> retained = buffer;
     auto* observed = buffer.get();
     auto record = arena.Begin();
+    auto completion = std::make_shared<CompletionCounter>();
+    record.Verify(completion);
     Reject<std::logic_error>([&] { (void)arena.Begin(); });
     Reject<std::logic_error>([&] { reset(allocator.get()); });
     Reject<std::logic_error>([&] { record.GetExecutable(); });
@@ -49,6 +59,7 @@ void AnyBox::Graphics::Tests::CheckCommandArena(Device* device) {
                 throw Submitted{};
             } catch (const Submitted&) {}
             Reject<std::logic_error>([&] { reset(allocator.get()); });
+            Require(completion->count == 0, "Vulkan completion check ran before GPU completion");
             Require(!retained.expired(), "Pending Vulkan commands released their retained buffer");
             fixture.Signal(11);
             fixture.Register(11);
@@ -62,6 +73,7 @@ void AnyBox::Graphics::Tests::CheckCommandArena(Device* device) {
         Require(moved.GetExecutable() == commands, "Cancelled allocator reset invalidated its command record");
     }
     Require(reset(allocator.get()) == S_OK && retained.expired(), "Completed Vulkan allocator reset did not release its retained resource");
+    Require(completion->count == 2, "Vulkan allocator reset did not check completed GPU resources");
     Reject<std::logic_error>([&] { moved.GetExecutable(); });
     {
         auto reused = arena.Begin();

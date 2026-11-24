@@ -67,20 +67,23 @@ void CheckRuntimeComputeMemory(AnyBox::Vulkan::Context& context) {
         std::memcpy(&observed, output->Map().data(), sizeof(observed));
         Fixtures::Require(observed == expected && binding.GetSets().front() == set);
     }
-    for (bool permission : {false, true}) {
-        std::vector<MemoryBinding> invalid{{destination, Abi::Write}};
-        if (permission) invalid.push_back({source, Abi::Write});
-        ComputeMemory rejected(context, MemoryTable(invalid));
-        ComputeBinding selected(pipeline, rejected);
-        Execute(context, rejected, selected, constants, true);
-        bool caught = false;
-        try { rejected.CheckFault(); }
-        catch (const std::runtime_error& error) {
-            auto reason = permission ? "reason=2 " : "reason=1 ";
-            caught = std::string_view(error.what()).find(reason) != std::string_view::npos;
+    for (auto lifetime : {FaultLifetime::Submission, FaultLifetime::Recording}) {
+        for (bool permission : {false, true}) {
+            std::vector<MemoryBinding> invalid{{destination, Abi::Write}};
+            if (permission) invalid.push_back({source, Abi::Write});
+            ComputeMemory rejected(context, MemoryTable(invalid), lifetime);
+            ComputeBinding selected(pipeline, rejected);
+            Execute(context, rejected, selected, constants, true);
+            bool caught = false;
+            try { rejected.CheckFault(); }
+            catch (const std::runtime_error& error) {
+                auto reason = permission ? "reason=2 " : "reason=1 ";
+                caught = std::string_view(error.what()).find(reason) != std::string_view::npos;
+            }
+            Fixtures::Require(caught);
+            Execute(context, rejected, selected, constants, false);
+            if (lifetime == FaultLifetime::Recording) Fixtures::Reject<std::runtime_error>([&] { rejected.CheckFault(); });
+            else rejected.CheckFault();
         }
-        Fixtures::Require(caught);
-        Execute(context, rejected, selected, constants, false);
-        rejected.CheckFault();
     }
 }
