@@ -21,6 +21,7 @@ public:
 private:
     using IrValue = ShaderRecompiler::IrValue;
     static unsigned width(const LLVMBC::Value& value);
+    static const LLVMBC::Value* aggregateElement(const LLVMBC::ExtractValueInst& instruction);
     IrValue& unsignedValue(IrValue& value);
     IrValue& narrow(IrValue& value, unsigned bits);
     IrValue& signedValue(IrValue& value, unsigned bits);

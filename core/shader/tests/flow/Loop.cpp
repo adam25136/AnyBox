@@ -46,5 +46,6 @@ int main() {
         FlowTests::CheckSwitches();
         FlowTests::CheckGlobalLoads();
         FlowTests::CheckBarriers();
+        FlowTests::CheckAggregates();
     });
 }

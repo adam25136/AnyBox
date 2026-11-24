@@ -16,6 +16,7 @@ void ScalarLowering::SetBuffers(BufferLowering& value) {
 }
 
 void ScalarLowering::Emit(const LLVMBC::Instruction& instruction) {
+    if (LLVMBC::isa<LLVMBC::CompositeConstructInst>(&instruction)) return;
     if (locals && locals->Emit(instruction, *this)) return;
     auto* call = LLVMBC::dyn_cast<LLVMBC::CallInst>(&instruction);
     if (call && buffers && buffers->Emit(*call, *this)) return;
@@ -29,6 +30,9 @@ void ScalarLowering::SetLocals(LocalLowering& value) {
 
 IrValue& ScalarLowering::Get(const LLVMBC::Value& value) {
     if (auto found = values.find(&value); found != values.end()) return *found->second;
+    if (auto* extraction = LLVMBC::dyn_cast<LLVMBC::ExtractValueInst>(&value)) {
+        if (auto* constituent = aggregateElement(*extraction)) return Get(*constituent);
+    }
     if (auto* calledInstruction = LLVMBC::dyn_cast<LLVMBC::CallInst>(&value)) {
         auto& output = call(*calledInstruction);
         values.emplace(&value, &output);
