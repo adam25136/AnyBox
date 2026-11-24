@@ -35,6 +35,10 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "xbox.global_load_dwordx2_with_cache") return globalLoad(instruction, 2);
     if (identifier == "xbox.global_load_dwordx3_with_cache") return globalLoad(instruction, 3);
     if (identifier == "xbox.global_load_dwordx4_with_cache") return globalLoad(instruction, 4);
+    if (identifier == "xbox.global_store_dword_with_cache") return globalStore(instruction, 1);
+    if (identifier == "xbox.global_store_dwordx2_with_cache") return globalStore(instruction, 2);
+    if (identifier == "xbox.global_store_dwordx3_with_cache") return globalStore(instruction, 3);
+    if (identifier == "xbox.global_store_dwordx4_with_cache") return globalStore(instruction, 4);
     if (identifier != "xbox.V_ALIGNBYTE_B32") throw std::runtime_error("DXIL intrinsic is not implemented: " + std::string(name.data(), name.size()));
     if (instruction.getNumArgOperands() != 4 || width(instruction) != 32) throw std::runtime_error("Xbox byte alignment intrinsic has an invalid signature");
     for (unsigned index = 0; index < 4; ++index) {

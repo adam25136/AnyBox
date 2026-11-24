@@ -33,6 +33,8 @@ private:
     IrValue& call(const LLVMBC::CallInst& instruction);
     IrValue& barrier(const LLVMBC::CallInst& instruction);
     IrValue& globalLoad(const LLVMBC::CallInst& instruction, unsigned words);
+    IrValue& globalStore(const LLVMBC::CallInst& instruction, unsigned words);
+    IrValue& globalStoreData(const LLVMBC::Value& value, unsigned words);
     IrValue& globalFloatAtomic(const LLVMBC::CallInst& instruction, bool maximum);
     IrValue& thread(const LLVMBC::CallInst& instruction, unsigned opcode);
     IrValue& waveFirst(const LLVMBC::CallInst& instruction);
