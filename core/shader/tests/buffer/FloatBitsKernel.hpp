@@ -30,7 +30,7 @@ inline ShaderRecompiler::IrProgram MakeFloatBitsKernel(unsigned mode) {
     auto* call = context.construct<LLVMBC::CallInst>(signature, function, std::move(arguments));
     auto& value = fixture.scalar.Get(*call);
     auto* bits = &builder.BitCastU32(value);
-    if (mode == 22) {
+    if (mode == 22 || mode == 28) {
         auto& nan = builder.Emit(IrOpcode::FPIsNan32, IrType::Bool, {&value});
         bits = &builder.Select(nan, builder.Constant(0x7FC00000), *bits);
     }
