@@ -7,7 +7,7 @@
 
 namespace {
 bool Dedicated(std::uint64_t attributes) {
-    return (attributes & (std::uint64_t{1} << 33)) != 0 && ((attributes & 0x1E000C000ULL) != 0 || ((attributes >> 24) & 31) > 4);
+    return (attributes & (std::uint64_t{1} << 33)) != 0;
 }
 }
 
@@ -21,6 +21,7 @@ void* AnyBox::XMem::AllocateHeapStorage(std::size_t size, std::uint64_t attribut
     if (size > std::numeric_limits<std::size_t>::max() - (pageSize - 1)) throw std::bad_alloc();
     size = (size + pageSize - 1) & ~(pageSize - 1);
     MEM_ADDRESS_REQUIREMENTS requirements{};
+    requirements.HighestEndingAddress = reinterpret_cast<void*>(0xFFFFFFFFULL);
     requirements.Alignment = std::max<std::size_t>(65536, alignment);
     MEM_EXTENDED_PARAMETER parameter{};
     parameter.Type = MemExtendedParameterAddressRequirements;
