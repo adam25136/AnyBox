@@ -6,6 +6,8 @@
 using namespace AnyBox::Graphics::Commands;
 using namespace AnyBox::Graphics::Container;
 
+void CheckInlinePipelines();
+
 namespace {
 void Require(bool value) {
     if (!value) throw std::runtime_error("Command argument test failed");
@@ -105,5 +107,5 @@ void CheckStream() {
 }
 
 int main() {
-    return AnyBox::Tests::Run([] { CheckState(); CheckStream(); });
+    return AnyBox::Tests::Run([] { CheckState(); CheckStream(); CheckInlinePipelines(); });
 }

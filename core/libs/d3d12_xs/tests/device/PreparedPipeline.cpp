@@ -48,6 +48,7 @@ void AnyBox::Graphics::Tests::CheckPreparedPipeline(Device* device) {
     cache.Save(artifact);
     Require(create(device, &description, 0, nullptr, PipelineStateId, &output) == S_OK && output, "Prepared shader did not create a pipeline through the Xbox ABI");
     auto* pipeline = static_cast<PipelineState*>(output);
+    CheckPipelineBindings(device, pipeline);
     Require(pipeline->GetOffline() && pipeline->GetRootSignature() == fixture.GetRoot(), "Prepared pipeline lost its backend or root signature");
     Method<decltype(&PipelineState::SetName)>(pipeline, 6)(pipeline, L"AnyBox prepared compute fixture");
     std::array<std::uint32_t, 8> record;

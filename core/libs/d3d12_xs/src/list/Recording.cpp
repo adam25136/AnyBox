@@ -1,5 +1,6 @@
 #include "List.hpp"
 #include "Compute.hpp"
+#include "../pipeline/State.hpp"
 #include <stdexcept>
 
 HRESULT AnyBox::Graphics::CommandList::Close(CommandList* self) {
@@ -26,6 +27,8 @@ HRESULT AnyBox::Graphics::CommandList::Reset(CommandList* self, void* allocator,
     self->state &= ~closedBit;
     delete self->compute;
     self->compute = nullptr;
+    if (self->pipeline) PipelineState::Release(self->pipeline);
+    self->pipeline = nullptr;
     self->resetGuestCommands();
     return result;
 }

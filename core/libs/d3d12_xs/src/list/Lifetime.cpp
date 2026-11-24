@@ -1,5 +1,6 @@
 #include "List.hpp"
 #include "Compute.hpp"
+#include "../pipeline/State.hpp"
 #include <stdexcept>
 
 AnyBox::Graphics::CommandList::CommandList(ID3D12GraphicsCommandList* host, Device* device, Allocator* allocator, D3D12_COMMAND_LIST_TYPE type, std::uint32_t flags) : guest(&GetListTable(), type), host(host), device(device), allocator(allocator), state(flags) {
@@ -9,6 +10,7 @@ AnyBox::Graphics::CommandList::CommandList(ID3D12GraphicsCommandList* host, Devi
 }
 
 AnyBox::Graphics::CommandList::~CommandList() {
+    if (pipeline) PipelineState::Release(pipeline);
     delete compute;
     if (synchronizationHost) synchronizationHost->Release();
     host->Release();

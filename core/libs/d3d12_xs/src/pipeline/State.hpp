@@ -18,6 +18,8 @@ public:
         return host;
     }
     const OfflinePipeline* GetOffline() const noexcept { return offline; }
+    const std::array<std::uint32_t, 8>& GetInlineCommands() const noexcept { return inlineCommands; }
+    static PipelineState* From(void* object, Device* owner);
     PrivateData& GetPrivateDataStore() { return privateData.Get(); }
     Device* GetParent() const noexcept { return device; }
     RootSignature* GetRootSignature() const noexcept { return root; }

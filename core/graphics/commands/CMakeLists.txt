@@ -4,6 +4,7 @@ target_include_directories(anybox_commands PUBLIC include)
 
 if(BUILD_TESTING)
     add_executable(graphics_commands_tests tests/Main.cpp)
+    target_sources(graphics_commands_tests PRIVATE tests/Pipeline.cpp)
     target_link_libraries(graphics_commands_tests PRIVATE anybox_commands anybox_test_support)
     target_compile_definitions(graphics_commands_tests PRIVATE ANYBOX_LIBRARY_NAME="graphics_commands")
     set_target_properties(graphics_commands_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${ANYBOX_RUNTIME_DIRECTORY}")

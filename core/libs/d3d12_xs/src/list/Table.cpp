@@ -22,6 +22,7 @@ AnyBox::Graphics::ListTable MakeTable(std::index_sequence<TSlots...>) {
     result[8] = MethodAddress(&CommandList::GetType);
     result[9] = MethodAddress(&CommandList::Close);
     result[10] = MethodAddress(&CommandList::Reset);
+    result[25] = MethodAddress(&CommandList::SetPipelineState);
     result[33] = MethodAddress(&CommandList::SetComputeRootSignature);
     result[35] = MethodAddress(&CommandList::SetComputeRootDescriptorTable);
     result[37] = MethodAddress(&CommandList::SetComputeRoot32BitConstant);
