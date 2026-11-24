@@ -53,6 +53,7 @@ target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/LocalLayout.cpp sr
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/ConstantBuffer.cpp src/dxil/lowering/Half.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/InlineConstants.cpp src/dxil/arguments/Read.cpp src/dxil/arguments/RootBindings.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/BitField.cpp)
+target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/UnaryBits.cpp)
 target_link_libraries(anybox_dxil_lowering PUBLIC anybox_compute_shader anybox_dxil PRIVATE llvm-bc anybox_options)
 target_include_directories(anybox_dxil_lowering SYSTEM PRIVATE "${PROJECT_SOURCE_DIR}/3rdparty/dxil-spirv/bc" "${PROJECT_SOURCE_DIR}/3rdparty/dxil-spirv/debug" "${PROJECT_SOURCE_DIR}/3rdparty/dxil-spirv/util")
 

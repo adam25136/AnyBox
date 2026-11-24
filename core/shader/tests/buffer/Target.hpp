@@ -34,6 +34,7 @@ void CheckFloatMinMax(AnyBox::Vulkan::Context& context);
 void CheckFloatMad(AnyBox::Vulkan::Context& context);
 void CheckWaveFirstGpu(AnyBox::Vulkan::Context& context);
 void CheckWaveCountGpu(AnyBox::Vulkan::Context& context);
+void CheckUnaryBitsGpu(AnyBox::Vulkan::Context& context);
 void CheckWaveReductionGpu(AnyBox::Vulkan::Context& context);
 void CheckWaveReductionInvalid();
 }
