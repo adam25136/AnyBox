@@ -14,6 +14,7 @@ target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveReduction.c
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveReductionInvalid.cpp tests/buffer/WaveReductionProof.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/GlobalAtomic.cpp tests/buffer/GlobalAtomicInvalid.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/GlobalStore.cpp tests/buffer/GlobalStoreInvalid.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/BufferAtomic.cpp tests/buffer/BufferAtomicInvalid.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Undef.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Locals.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Shared.cpp)

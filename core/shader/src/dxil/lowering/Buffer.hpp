@@ -34,6 +34,7 @@ public:
     BufferLowering(ShaderRecompiler::IrProgram& program, ShaderRecompiler::IrBuilder& builder, const ResourceLayout& layout, IResourceBindings& bindings);
     bool Emit(const LLVMBC::CallInst& instruction, ScalarLowering& scalar);
     ShaderRecompiler::IrValue* Extract(const LLVMBC::ExtractValueInst& instruction, ScalarLowering& scalar);
+    ShaderRecompiler::IrValue& Atomic(const LLVMBC::CallInst& instruction, ScalarLowering& scalar);
 
 private:
     using IrValue = ShaderRecompiler::IrValue;
@@ -52,7 +53,7 @@ private:
     void constantBuffer(const LLVMBC::CallInst& instruction, unsigned bits, ScalarLowering& scalar, bool floating);
     void constantWords(const LLVMBC::CallInst& instruction, std::span<IrValue* const> words, IrValue& row, unsigned bits, std::uint32_t byteSize, bool floating);
     void store(const LLVMBC::CallInst& instruction, unsigned bits, ScalarLowering& scalar, bool floating = false);
-    Access resolve(const LLVMBC::CallInst& instruction, ScalarLowering& scalar, bool write);
+    Access resolve(const LLVMBC::CallInst& instruction, ScalarLowering& scalar, bool write, unsigned indexPosition = 2);
     Component component(const Access& access, unsigned bits, unsigned index);
     static std::uint32_t constant(const LLVMBC::CallInst& instruction, unsigned index, unsigned bits);
     ShaderRecompiler::MemoryFlags memory(unsigned bits, bool coherent);

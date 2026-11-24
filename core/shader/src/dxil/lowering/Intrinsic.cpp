@@ -1,4 +1,5 @@
 #include "Scalar.hpp"
+#include "Buffer.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -11,6 +12,10 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (!function) throw std::runtime_error("DXIL indirect function call is not implemented");
     const auto& name = function->getName();
     auto identifier = std::string_view(name.data(), name.size());
+    if (identifier == "dx.op.atomicBinOp.i32") {
+        if (!buffers) throw std::runtime_error("DXIL buffer atomic has no resource bindings");
+        return buffers->Atomic(instruction, *this);
+    }
     if (identifier == "dx.op.barrier") return barrier(instruction);
     if (identifier == "dx.op.legacyF16ToF32") return legacyHalf(instruction);
     if (identifier == "dx.op.binary.f32") return floatBinaryIntrinsic(instruction);

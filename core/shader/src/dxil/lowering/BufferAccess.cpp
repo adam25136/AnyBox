@@ -13,14 +13,14 @@ std::uint32_t BufferLowering::constant(const LLVMBC::CallInst& instruction, unsi
     return static_cast<std::uint32_t>(value->getUniqueInteger().getZExtValue());
 }
 
-BufferLowering::Access BufferLowering::resolve(const LLVMBC::CallInst& instruction, ScalarLowering& scalar, bool write) {
+BufferLowering::Access BufferLowering::resolve(const LLVMBC::CallInst& instruction, ScalarLowering& scalar, bool write, unsigned indexPosition) {
     auto handle = handles.find(instruction.getArgOperand(1));
     if (handle == handles.end()) throw std::runtime_error("DXIL buffer access requires a previously created resource handle");
     const auto& binding = *handle->second.binding;
     if ((write && binding.resourceClass != ResourceClass::UnorderedAccess) || (!write && binding.resourceClass != ResourceClass::ShaderResource && binding.resourceClass != ResourceClass::UnorderedAccess)) throw std::runtime_error("DXIL buffer access uses an incompatible resource class");
     if (binding.kind != BufferKind::Raw && binding.kind != BufferKind::Structured) throw std::runtime_error("DXIL buffer access requires a raw or structured buffer");
-    auto* index = instruction.getArgOperand(2);
-    auto* offset = instruction.getArgOperand(3);
+    auto* index = instruction.getArgOperand(indexPosition);
+    auto* offset = instruction.getArgOperand(indexPosition + 1);
     if (!index->getType()->isIntegerTy() || index->getType()->getIntegerBitWidth() != 32 || !offset->getType()->isIntegerTy() || offset->getType()->getIntegerBitWidth() != 32) throw std::runtime_error("DXIL buffer indices must be 32-bit integers");
     auto& selected = scalar.Get(*handle->second.index);
     auto view = bindings.ResolveBuffer(binding, selected, handle->second.nonUniform, builder);
