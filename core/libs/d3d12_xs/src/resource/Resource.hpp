@@ -52,7 +52,7 @@ private:
     std::atomic<std::uint32_t> references{1};
     Vulkan::Buffer* buffer;
     Device* device;
-    IPhysicalPageLease* pages;
+    BufferBacking* bufferBacking = nullptr;
     std::uintptr_t address;
     D3D12_RESOURCE_DESC1 description;
     PrivateDataSlot privateData;

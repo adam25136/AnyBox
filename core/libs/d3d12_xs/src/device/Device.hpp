@@ -13,6 +13,7 @@
 #include <mutex>
 #include <type_traits>
 #include <anybox/texture/AddressSpace.hpp>
+#include <anybox/buffer/AddressSpace.hpp>
 
 namespace AnyBox::Vulkan { class Context; class Buffer; }
 
@@ -51,6 +52,7 @@ public:
     std::array<std::uint32_t, 2> GetWaveLimits();
     Vulkan::Context& GetGpuContext() const noexcept { return *gpuContext; }
     Texture::AddressSpace& GetTextureAddresses() noexcept { return textureAddresses; }
+    Buffers::AddressSpace& GetBufferAddresses() noexcept { return bufferAddresses; }
     bool Matches(const D3D12XboxCreateDeviceParameters& value) const noexcept;
     static std::uint32_t TryAddRef(Device* self);
     static std::uint32_t GetNodeCount(Device* self);
@@ -100,6 +102,7 @@ private:
     Vulkan::Buffer* nullConstantBuffer = nullptr;
     std::uint64_t nullConstantAddress = 0;
     Texture::AddressSpace textureAddresses;
+    Buffers::AddressSpace bufferAddresses;
     std::once_flag waveInitialization;
     std::array<std::uint32_t, 2> waveLimits{};
 };

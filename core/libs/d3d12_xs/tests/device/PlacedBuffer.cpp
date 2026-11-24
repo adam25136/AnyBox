@@ -59,7 +59,7 @@ void AnyBox::Graphics::Tests::CheckPlacedBuffer(Device* device) {
     Reject<std::invalid_argument>([&] { map(resource, 1, nullptr, &mapped); });
     D3D12_RANGE invalid{0, 2 * page + 1};
     Reject<std::invalid_argument>([&] { unmap(resource, 0, &invalid); });
-    Require(release(resource) == 0, "Placed buffer final reference was not released");
+    CheckPlacedBufferLifetime(device, resource, {address, 2 * page});
     for (bool repeated : {false, true}) {
         std::array mapping{repeated ? frames[0] : frames[1], frames[0]};
         XMemMapPhysicalPages(address, mapping.size(), mapping.data());

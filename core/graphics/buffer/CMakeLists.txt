@@ -1,0 +1,13 @@
+add_library(anybox_buffer_addresses STATIC src/AddressSpace.cpp src/Mapping.cpp src/Tree.cpp src/Balance.cpp)
+target_include_directories(anybox_buffer_addresses PUBLIC include)
+target_link_libraries(anybox_buffer_addresses PUBLIC anybox_options)
+
+if(BUILD_TESTING)
+    add_executable(buffer_address_tests tests/Main.cpp tests/Random.cpp tests/Concurrent.cpp)
+    target_link_libraries(buffer_address_tests PRIVATE anybox_buffer_addresses anybox_test_support)
+    target_compile_definitions(buffer_address_tests PRIVATE ANYBOX_LIBRARY_NAME="buffer_addresses")
+    set_target_properties(buffer_address_tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${ANYBOX_RUNTIME_DIRECTORY}")
+    anybox_add_compiler_runtime(buffer_address_tests)
+    add_test(NAME graphics.buffer.addresses COMMAND buffer_address_tests)
+    set_tests_properties(graphics.buffer.addresses PROPERTIES TIMEOUT 15)
+endif()
