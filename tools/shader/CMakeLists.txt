@@ -3,6 +3,7 @@ target_sources(anybox_shader PRIVATE AuditCompile.cpp AuditStream.cpp BinaryInpu
 target_sources(anybox_shader PRIVATE NativeAudit.cpp)
 target_sources(anybox_shader PRIVATE Compile.cpp Artifact.cpp)
 target_sources(anybox_shader PRIVATE Files.cpp)
+target_sources(anybox_shader PRIVATE Prepare.cpp)
 target_sources(anybox_shader PRIVATE Gpu.cpp)
 target_link_libraries(anybox_shader PRIVATE anybox_shader_runtime)
 target_link_libraries(anybox_shader PRIVATE anybox_shader_artifact)

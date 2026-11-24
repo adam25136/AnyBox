@@ -10,6 +10,7 @@ void CheckCompilerOptions();
 void CheckNative();
 void CheckNativeComputeState();
 void CheckRootSignatureLayout();
+void CheckEmbeddedDxbc();
 
 namespace {
 using namespace AnyBox::Graphics::Container;
@@ -82,5 +83,6 @@ int main() {
         CheckNative();
         CheckNativeComputeState();
         CheckRootSignatureLayout();
+        CheckEmbeddedDxbc();
     });
 }

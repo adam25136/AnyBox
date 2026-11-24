@@ -3,6 +3,7 @@
 #include "NativeAudit.hpp"
 #include "Compilation.hpp"
 #include "Files.hpp"
+#include "Prepare.hpp"
 #include <anybox/shader/Resources.hpp>
 #include <anybox/shader/Compute.hpp>
 #include <array>
@@ -11,9 +12,13 @@
 
 int main(int argc, char** argv) {
     try {
+        if (argc == 4 && std::string_view(argv[1]) == "--prepare-compute") {
+            AnyBox::Shader::Tools::PrepareCompute(argv[2], argv[3]);
+            return 0;
+        }
         if (argc == 2 && std::string_view(argv[1]) == "--audit-stream") return AnyBox::Shader::Tools::AuditStream();
         bool artifactCommand = argc == 4 && (std::string_view(argv[1]) == "--compile" || std::string_view(argv[1]) == "--verify" || std::string_view(argv[1]) == "--check-gpu");
-        if (!artifactCommand && (argc != 3 || (std::string_view(argv[1]) != "--inspect" && std::string_view(argv[1]) != "--bindings" && std::string_view(argv[1]) != "--compute" && std::string_view(argv[1]) != "--native-info" && std::string_view(argv[1]) != "--native-ir" && std::string_view(argv[1]) != "--native-audit"))) throw std::invalid_argument("Usage: anybox_shader <--inspect|--bindings|--compute|--native-info|--native-ir|--native-audit> <shader.dxbc> | <--compile|--verify|--check-gpu> <shader.dxbc> <shader.abxc> | --audit-stream");
+        if (!artifactCommand && (argc != 3 || (std::string_view(argv[1]) != "--inspect" && std::string_view(argv[1]) != "--bindings" && std::string_view(argv[1]) != "--compute" && std::string_view(argv[1]) != "--native-info" && std::string_view(argv[1]) != "--native-ir" && std::string_view(argv[1]) != "--native-audit"))) throw std::invalid_argument("Usage: anybox_shader <--inspect|--bindings|--compute|--native-info|--native-ir|--native-audit> <shader.dxbc> | <--compile|--verify|--check-gpu> <shader.dxbc> <shader.abxc> | --prepare-compute <binary> <directory> | --audit-stream");
         auto data = AnyBox::Shader::Tools::ReadInput(argv[2]);
         if (artifactCommand) {
             auto artifact = std::string_view(argv[1]) == "--compile" ? AnyBox::Shader::Tools::CompileDxil(data) : AnyBox::Shader::DecodeComputeArtifact(AnyBox::Shader::Tools::ReadInput(argv[3]), AnyBox::Shader::HashShader(data));
