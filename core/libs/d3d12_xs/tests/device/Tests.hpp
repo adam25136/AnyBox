@@ -66,4 +66,6 @@ void CheckRawShaderViews(Device* device);
 void CheckVulkanTimeline(Device* device);
 void CheckGpuQueue(Device* device);
 void CheckGpuQueueSlots(Device* device);
+void CheckCommandArena(Device* device);
+void CheckCommandRetirement(Device* device);
 }

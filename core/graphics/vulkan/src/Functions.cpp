@@ -31,6 +31,7 @@ void AnyBox::Vulkan::Context::loadDeviceFunctions() {
     ANYBOX_VULKAN_FUNCTION(unmapMemory, vkUnmapMemory);
     ANYBOX_VULKAN_FUNCTION(createCommandPool, vkCreateCommandPool);
     ANYBOX_VULKAN_FUNCTION(destroyCommandPool, vkDestroyCommandPool);
+    ANYBOX_VULKAN_FUNCTION(resetCommandPool, vkResetCommandPool);
     ANYBOX_VULKAN_FUNCTION(allocateCommandBuffers, vkAllocateCommandBuffers);
     ANYBOX_VULKAN_FUNCTION(beginCommandBuffer, vkBeginCommandBuffer);
     ANYBOX_VULKAN_FUNCTION(endCommandBuffer, vkEndCommandBuffer);

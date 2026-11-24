@@ -23,7 +23,7 @@ AnyBox::Vulkan::QueueBridge::QueueBridge(Context& context, ID3D12CommandQueue& h
         Windows::CheckHResult(device->CreateSharedHandle(fence, nullptr, GENERIC_ALL, nullptr, &shared), "Export queue bridge fence");
         auto close = [](void* handle) { CloseHandle(handle); };
         std::unique_ptr<void, decltype(close)> handle(shared, close);
-        timeline = std::make_unique<Timeline>(Timeline::ImportD3D12Fence(context, shared));
+        timeline = std::make_shared<Timeline>(Timeline::ImportD3D12Fence(context, shared));
         host.AddRef();
     } catch (...) {
         fence->Release();

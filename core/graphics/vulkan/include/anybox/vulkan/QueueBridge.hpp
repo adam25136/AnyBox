@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Timeline.hpp"
+#include "Submission.hpp"
 #include <span>
 
 struct ID3D12CommandQueue;
@@ -16,13 +17,15 @@ public:
     void Check() const;
     void Submit(std::span<const VkCommandBuffer> commands);
     bool WaitIdle(std::uint64_t timeoutNanoseconds) const;
+    Submission GetCompletion() const noexcept { return {timeline, lastGpu}; }
+    Context& GetContext() const noexcept { return context; }
 
 private:
     Context& context;
     ID3D12CommandQueue& host;
     std::uint32_t queueIndex;
     ID3D12Fence* fence = nullptr;
-    std::unique_ptr<Timeline> timeline;
+    std::shared_ptr<Timeline> timeline;
     std::uint64_t value = 0;
     std::uint64_t lastHost = 0;
     std::uint64_t lastGpu = 0;

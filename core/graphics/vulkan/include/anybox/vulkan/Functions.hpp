@@ -40,6 +40,7 @@ struct DeviceFunctions {
     PFN_vkUnmapMemory unmapMemory;
     PFN_vkCreateCommandPool createCommandPool;
     PFN_vkDestroyCommandPool destroyCommandPool;
+    PFN_vkResetCommandPool resetCommandPool;
     PFN_vkAllocateCommandBuffers allocateCommandBuffers;
     PFN_vkBeginCommandBuffer beginCommandBuffer;
     PFN_vkEndCommandBuffer endCommandBuffer;

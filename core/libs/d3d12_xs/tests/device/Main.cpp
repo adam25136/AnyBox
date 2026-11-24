@@ -74,6 +74,8 @@ int main(int argc, char** argv) {
             CheckVulkanTimeline(device);
             CheckGpuQueue(device);
             CheckGpuQueueSlots(device);
+            CheckCommandArena(device);
+            CheckCommandRetirement(device);
             CheckInlineCommands(device);
             CheckDxgi(device);
             CheckFrameConfiguration(device);
