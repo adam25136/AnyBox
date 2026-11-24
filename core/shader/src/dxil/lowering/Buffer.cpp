@@ -19,6 +19,10 @@ bool BufferLowering::Emit(const LLVMBC::CallInst& instruction, ScalarLowering& s
         return true;
     }
     unsigned bits;
+    if (identifier == "xbox.TypedLoad.i32") {
+        if (!aggregates.contains(&instruction)) typedLoad(instruction, scalar);
+        return true;
+    }
     if (identifier == "dx.op.cbufferLoadLegacy.i32" || identifier == "dx.op.cbufferLoadLegacy.i64" || identifier == "dx.op.cbufferLoadLegacy.f32") {
         if (!aggregates.contains(&instruction)) constantBuffer(instruction, identifier == "dx.op.cbufferLoadLegacy.i64" ? 64 : 32, scalar, identifier == "dx.op.cbufferLoadLegacy.f32");
         return true;

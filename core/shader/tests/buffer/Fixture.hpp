@@ -47,6 +47,18 @@ public:
         instructions.push_back(call);
         return call;
     }
+    LLVMBC::CallInst* TypedLoad(unsigned format, unsigned offset) {
+        auto& context = source.Context();
+        auto* word = LLVMBC::Type::getInt32Ty(context);
+        auto* result = LLVMBC::StructType::get(context, {word, word, word, word, word}, "typedResult");
+        auto* signature = context.construct<LLVMBC::FunctionType>(context, result, LLVMBC::Vector<LLVMBC::Type*>{word, handle->getType(), word, word});
+        source.Module().add_value_name(512, "xbox.TypedLoad.i32");
+        auto* declaration = context.construct<LLVMBC::Function>(signature, 512, source.Module());
+        auto* call = context.construct<LLVMBC::CallInst>(signature, declaration, LLVMBC::Vector<LLVMBC::Value*>{LLVMBC::ConstantInt::get(word, 138), handle, LLVMBC::ConstantInt::get(word, offset), LLVMBC::ConstantInt::get(word, format)});
+        scalar.Emit(*call);
+        instructions.push_back(call);
+        return call;
+    }
     ShaderRecompiler::IrValue& Extract(LLVMBC::CallInst* load, unsigned index) {
         auto* type = load->getType()->getStructElementType(index);
         auto* instruction = source.Context().construct<LLVMBC::ExtractValueInst>(type, load, LLVMBC::Vector<unsigned>{index});

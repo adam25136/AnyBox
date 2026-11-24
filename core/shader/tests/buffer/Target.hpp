@@ -22,6 +22,7 @@ inline ShaderRecompiler::SpirvTargetOptions Target() {
 void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::ComputeCompilation& shader, std::span<const std::uint32_t> expected, const std::array<std::uint32_t, 3>& groups, std::span<const std::byte> inputData = {}, std::span<const std::uint32_t> userData = {}, std::span<const std::byte> outputData = {});
 void CheckGlobalFloatAtomicGpu(AnyBox::Vulkan::Context& context);
 void CheckUndefGpu(AnyBox::Vulkan::Context& context);
+void CheckTypedLoadGpu(AnyBox::Vulkan::Context& context);
 void CheckThreads(AnyBox::Vulkan::Context& context);
 void CheckNativeGpu(AnyBox::Vulkan::Context& context);
 void CheckNativeFma(AnyBox::Vulkan::Context& context);

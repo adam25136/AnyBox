@@ -48,6 +48,7 @@ private:
         IrValue& active;
     };
     void load(const LLVMBC::CallInst& instruction, unsigned bits, ScalarLowering& scalar, bool floating = false);
+    void typedLoad(const LLVMBC::CallInst& instruction, ScalarLowering& scalar);
     void constantBuffer(const LLVMBC::CallInst& instruction, unsigned bits, ScalarLowering& scalar, bool floating);
     void constantWords(const LLVMBC::CallInst& instruction, std::span<IrValue* const> words, IrValue& row, unsigned bits, std::uint32_t byteSize, bool floating);
     void store(const LLVMBC::CallInst& instruction, unsigned bits, ScalarLowering& scalar, bool floating = false);
