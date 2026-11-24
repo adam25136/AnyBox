@@ -36,6 +36,7 @@ private:
     IrValue& globalFloatAtomic(const LLVMBC::CallInst& instruction, bool maximum);
     IrValue& thread(const LLVMBC::CallInst& instruction, unsigned opcode);
     IrValue& waveFirst(const LLVMBC::CallInst& instruction);
+    IrValue& waveBuiltin(const LLVMBC::CallInst& instruction, unsigned opcode);
     IrValue& waveCount(const LLVMBC::CallInst& instruction);
     IrValue& waveReduction(const LLVMBC::CallInst& instruction);
     IrValue& waveInteger(const LLVMBC::CallInst& instruction, bool prefix);

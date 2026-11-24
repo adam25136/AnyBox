@@ -4,6 +4,17 @@
 using namespace ShaderRecompiler;
 using AnyBox::Shader::Dxil::ScalarLowering;
 
+IrValue& ScalarLowering::waveBuiltin(const LLVMBC::CallInst& instruction, unsigned opcode) {
+    if (instruction.getNumArgOperands() != 1 || width(instruction) != 32) throw std::runtime_error("DXIL wave builtin has an invalid signature");
+    if (width(*instruction.getArgOperand(0)) != 32) throw std::runtime_error("DXIL wave builtin requires a 32-bit opcode");
+    auto* value = LLVMBC::dyn_cast<LLVMBC::ConstantInt>(instruction.getArgOperand(0));
+    if (!value || value->getUniqueInteger().getZExtValue() != opcode) throw std::runtime_error("DXIL wave builtin has an invalid opcode");
+    if (program.WaveSize() != 32 && program.WaveSize() != 64) throw std::runtime_error("DXIL wave builtin requires a 32-lane or 64-lane wave");
+
+    if (opcode == 112) return builder.Constant(program.WaveSize());
+    return builder.Emit(IrOpcode::LaneId, IrType::U32, {});
+}
+
 IrValue& ScalarLowering::waveFirst(const LLVMBC::CallInst& instruction) {
     if (instruction.getNumArgOperands() != 1 || GetType(instruction) != IrType::Bool) throw std::runtime_error("DXIL first wave lane intrinsic has an invalid signature");
     if (width(*instruction.getArgOperand(0)) != 32) throw std::runtime_error("DXIL first wave lane intrinsic requires a 32-bit opcode");
