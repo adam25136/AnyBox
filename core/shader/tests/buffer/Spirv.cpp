@@ -3,7 +3,6 @@
 #include "ComputeCompiler.hpp"
 #include "Target.hpp"
 
-namespace BufferTests { void CheckGlobalConstants(AnyBox::Vulkan::Context& context); }
 #include "TransferFixture.hpp"
 #include "FloatFixture.hpp"
 #include "LocalFixture.hpp"
@@ -11,7 +10,11 @@ namespace BufferTests { void CheckGlobalConstants(AnyBox::Vulkan::Context& conte
 #include <anybox/vulkan/Context.hpp>
 #include <spirv/unified1/spirv.hpp>
 
-namespace BufferTests { void CheckGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::ComputeCompilation& shader, std::uint32_t expected); }
+namespace BufferTests {
+void CheckGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::ComputeCompilation& shader, std::uint32_t expected);
+void CheckGlobalConstants(AnyBox::Vulkan::Context& context);
+void CheckFloatBits(AnyBox::Vulkan::Context& context);
+}
 void CheckRuntimeComputeMemory(AnyBox::Vulkan::Context& context);
 
 namespace {
@@ -68,6 +71,7 @@ void BufferTests::CheckSpirv() {
     CheckBufferArgumentGpu(context);
     CheckLegacyHalfGpu(context);
     CheckFloatMinMax(context);
+    CheckFloatBits(context);
     CheckFloatMinMax3(context);
     CheckFloatMad(context);
     CheckFloatDot(context);

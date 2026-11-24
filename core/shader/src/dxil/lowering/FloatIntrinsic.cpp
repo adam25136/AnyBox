@@ -1,19 +1,12 @@
 #include "Scalar.hpp"
+#include "FloatBits.hpp"
 #include <cast.hpp>
 #include <array>
 
 using namespace ShaderRecompiler;
 using AnyBox::Shader::Dxil::ScalarLowering;
 
-namespace {
-IrValue& Flush(IrBuilder& builder, IrValue& value) {
-    auto& bits = builder.BitCastU32(value);
-    auto& exponent = builder.BitwiseAnd(bits, builder.Constant(0x7F800000U));
-    auto& zeroExponent = builder.IEqual(exponent, builder.Constant(0));
-    auto& sign = builder.BitwiseAnd(bits, builder.Constant(0x80000000U));
-    return builder.BitCastF32(builder.Select(zeroExponent, sign, bits));
-}
-}
+using AnyBox::Shader::Dxil::FlushFloat32;
 
 IrValue& ScalarLowering::floatBinaryIntrinsic(const LLVMBC::CallInst& instruction) {
     if (instruction.getNumArgOperands() != 3 || GetType(instruction) != IrType::F32) throw std::runtime_error("DXIL floating binary intrinsic has an invalid signature");
@@ -26,8 +19,8 @@ IrValue& ScalarLowering::floatBinaryIntrinsic(const LLVMBC::CallInst& instructio
         case 36: operation = IrOpcode::FPMin32; break;
         default: throw std::runtime_error("DXIL floating binary intrinsic opcode is not implemented");
     }
-    auto& left = Flush(builder, Get(*instruction.getArgOperand(1)));
-    auto& right = Flush(builder, Get(*instruction.getArgOperand(2)));
+    auto& left = FlushFloat32(builder, Get(*instruction.getArgOperand(1)));
+    auto& right = FlushFloat32(builder, Get(*instruction.getArgOperand(2)));
     return builder.Emit(operation, IrType::F32, {&left, &right});
 }
 
@@ -54,9 +47,9 @@ IrValue& ScalarLowering::floatExtrema3(const LLVMBC::CallInst& instruction, unsi
         if (GetType(*instruction.getArgOperand(index)) != IrType::F32) throw std::runtime_error("Xbox three-operand extrema requires float32 operands");
     }
 
-    auto& first = Flush(builder, Get(*instruction.getArgOperand(1)));
-    auto& second = Flush(builder, Get(*instruction.getArgOperand(2)));
-    auto& third = Flush(builder, Get(*instruction.getArgOperand(3)));
+    auto& first = FlushFloat32(builder, Get(*instruction.getArgOperand(1)));
+    auto& second = FlushFloat32(builder, Get(*instruction.getArgOperand(2)));
+    auto& third = FlushFloat32(builder, Get(*instruction.getArgOperand(3)));
     constexpr std::array operations{IrOpcode::FPMinTri32, IrOpcode::FPMaxTri32, IrOpcode::FPMedTri32};
     return builder.Emit(operations.at(expectedOpcode - 8), IrType::F32, {&first, &second, &third});
 }

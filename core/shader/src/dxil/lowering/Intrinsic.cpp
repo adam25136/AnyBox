@@ -1,5 +1,6 @@
 #include "Scalar.hpp"
 #include "Buffer.hpp"
+#include "FloatBits.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -17,6 +18,8 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
         return buffers->Atomic(instruction, *this);
     }
     if (identifier == "dx.op.barrier") return barrier(instruction);
+    if (identifier == "dx.op.unary.f32") return LowerUnaryFloat(instruction, *this, builder);
+    if (identifier == "llvm.copysign.f32") return LowerCopySign(instruction, *this, builder);
     if (identifier == "dx.op.legacyF16ToF32") return legacyHalf(instruction);
     if (identifier == "dx.op.binary.f32") return floatBinaryIntrinsic(instruction);
     if (identifier == "dx.op.tertiary.f32") return floatTernaryIntrinsic(instruction);
