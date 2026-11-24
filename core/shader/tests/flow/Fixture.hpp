@@ -42,4 +42,5 @@ private:
 std::vector<std::uint32_t> Evaluate(const ShaderRecompiler::IrProgram& program);
 void CheckSwitches();
 void CheckGlobalLoads();
+void CheckBarriers();
 }

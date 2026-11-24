@@ -11,6 +11,7 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (!function) throw std::runtime_error("DXIL indirect function call is not implemented");
     const auto& name = function->getName();
     auto identifier = std::string_view(name.data(), name.size());
+    if (identifier == "dx.op.barrier") return barrier(instruction);
     if (identifier == "dx.op.legacyF16ToF32") return legacyHalf(instruction);
     if (identifier == "dx.op.binary.f32") return floatBinaryIntrinsic(instruction);
     if (identifier == "dx.op.tertiary.f32") return floatTernaryIntrinsic(instruction);

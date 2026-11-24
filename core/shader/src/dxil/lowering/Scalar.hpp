@@ -30,6 +30,7 @@ private:
     IrValue& compare(const LLVMBC::ICmpInst& instruction);
     IrValue& cast(const LLVMBC::CastInst& instruction);
     IrValue& call(const LLVMBC::CallInst& instruction);
+    IrValue& barrier(const LLVMBC::CallInst& instruction);
     IrValue& globalLoad(const LLVMBC::CallInst& instruction, unsigned words);
     IrValue& globalFloatAtomic(const LLVMBC::CallInst& instruction, bool maximum);
     IrValue& thread(const LLVMBC::CallInst& instruction, unsigned opcode);
