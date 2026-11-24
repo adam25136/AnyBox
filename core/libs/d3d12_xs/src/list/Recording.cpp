@@ -2,6 +2,7 @@
 #include "Compute.hpp"
 #include "../pipeline/State.hpp"
 #include <stdexcept>
+#include <memory>
 
 HRESULT AnyBox::Graphics::CommandList::Close(CommandList* self) {
     if (self->IsClosed()) throw std::logic_error("Command list is already closed");
@@ -14,21 +15,26 @@ HRESULT AnyBox::Graphics::CommandList::Close(CommandList* self) {
 
 HRESULT AnyBox::Graphics::CommandList::Reset(CommandList* self, void* allocator, void* initialState) {
     if (!self->IsClosed()) throw std::logic_error("Recording command list cannot be reset");
-    if (initialState) throw std::runtime_error("Initial command list pipeline state is not implemented");
+    auto* initial = initialState ? PipelineState::From(initialState, self->device) : nullptr;
+    if (initial && self->guest.type != D3D12_COMMAND_LIST_TYPE_DIRECT && self->guest.type != D3D12_COMMAND_LIST_TYPE_COMPUTE) throw std::runtime_error("Initial pipeline is not implemented for this command list type");
     auto* next = Allocator::From(allocator);
     if (next->GetParent() != self->device) throw std::invalid_argument("Command list and allocator devices differ");
     if (next->GetType() != self->guest.type) throw std::invalid_argument("Command list and allocator types differ");
-    auto result = self->host->Reset(next->GetHost(), nullptr);
+    Allocator::AddRef(next);
+    std::unique_ptr<Allocator, decltype(&Allocator::Release)> heldAllocator(next, &Allocator::Release);
+    if (initial) PipelineState::AddRef(initial);
+    std::unique_ptr<PipelineState, decltype(&PipelineState::Release)> heldPipeline(initial, &PipelineState::Release);
+    auto* nativePipeline = initial && !initial->GetOffline() ? initial->GetHost() : nullptr;
+    auto result = self->host->Reset(next->GetHost(), nativePipeline);
     CheckGraphicsResult(result, "ID3D12GraphicsCommandList::Reset");
 
-    Allocator::AddRef(next);
     Allocator::Release(self->allocator);
-    self->allocator = next;
+    self->allocator = heldAllocator.release();
     self->state &= ~closedBit;
     delete self->compute;
     self->compute = nullptr;
     if (self->pipeline) PipelineState::Release(self->pipeline);
-    self->pipeline = nullptr;
+    self->pipeline = heldPipeline.release();
     self->resetGuestCommands();
     return result;
 }

@@ -42,6 +42,7 @@ void CheckLists(Device* device);
 void CheckRoots(Device* device);
 void CheckPipelines(Device* device);
 void CheckPipelineBindings(Device* device, void* pipeline);
+void CheckInitialPipelines(Device* device, void* pipeline);
 std::vector<std::byte> CompileComputeShader();
 void CheckRootLayouts(Device* device);
 void CheckSynchronization(Device* device);

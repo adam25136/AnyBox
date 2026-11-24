@@ -23,7 +23,7 @@ struct XboxListDescription {
 
 class CommandList : public ObjectLifetime<CommandList> {
 public:
-    CommandList(ID3D12GraphicsCommandList* host, Device* device, Allocator* allocator, D3D12_COMMAND_LIST_TYPE type, std::uint32_t flags = 0);
+    CommandList(ID3D12GraphicsCommandList* host, Device* device, Allocator* allocator, D3D12_COMMAND_LIST_TYPE type, std::uint32_t flags = 0, PipelineState* initial = nullptr);
     ~CommandList();
     ID3D12GraphicsCommandList* GetHost() const noexcept { return host; }
     Device* GetParent() const noexcept { return device; }
@@ -60,6 +60,7 @@ private:
     void updateRootHeaders() noexcept;
     void resetGuestCommands() noexcept;
     void bindPipeline(PipelineState* next);
+    void cachePipeline() noexcept;
     ID3D12GraphicsCommandList7* getSynchronizationHost();
     void synchronize(bool top, std::uint32_t flags, std::uint32_t control, std::uint64_t address, std::uint64_t size);
     GuestListHeader guest;

@@ -32,7 +32,7 @@ void AnyBox::Graphics::CommandList::resetGuestCommands() noexcept {
     std::uint32_t clean = 0;
     std::memcpy(guest.driverState.data() + 320 - 56, &clean, sizeof(clean));
     updateRootHeaders();
-    std::memset(guest.driverState.data() + 0x544 - 56, 0, 32);
+    cachePipeline();
 }
 
 void AnyBox::Graphics::CommandList::validateGuestCommands() const {

@@ -3,9 +3,15 @@
 #include "../pipeline/State.hpp"
 #include <stdexcept>
 
-AnyBox::Graphics::CommandList::CommandList(ID3D12GraphicsCommandList* host, Device* device, Allocator* allocator, D3D12_COMMAND_LIST_TYPE type, std::uint32_t flags) : guest(&GetListTable(), type), host(host), device(device), allocator(allocator), state(flags) {
+AnyBox::Graphics::CommandList::CommandList(ID3D12GraphicsCommandList* host, Device* device, Allocator* allocator, D3D12_COMMAND_LIST_TYPE type, std::uint32_t flags, PipelineState* initial) : guest(&GetListTable(), type), host(host), device(device), allocator(allocator), state(flags) {
+    if (initial && type != D3D12_COMMAND_LIST_TYPE_DIRECT && type != D3D12_COMMAND_LIST_TYPE_COMPUTE) throw std::runtime_error("Initial pipeline is not implemented for this command list type");
     Device::AddRef(device);
-    Allocator::AddRef(allocator);
+    try {
+        Allocator::AddRef(allocator);
+        try { if (initial) PipelineState::AddRef(initial); }
+        catch (...) { Allocator::Release(allocator); throw; }
+    } catch (...) { Device::Release(device); throw; }
+    pipeline = initial;
     resetGuestCommands();
 }
 

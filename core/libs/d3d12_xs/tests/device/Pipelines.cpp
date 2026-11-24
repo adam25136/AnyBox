@@ -29,6 +29,7 @@ void AnyBox::Graphics::Tests::CheckPipelines(Device* device) {
     auto create = Method<decltype(&Device::CreateComputePipelineStateX)>(device, 62);
     Require(create(device, &description, 0, nullptr, PipelineStateId, &output) == 0 && output, "Compute pipeline creation through the Xbox ABI failed");
     auto* pipeline = static_cast<PipelineState*>(output);
+    CheckInitialPipelines(device, pipeline);
     CheckPipelineBindings(device, pipeline);
     auto release = Method<decltype(&PipelineState::Release)>(pipeline, 2);
     auto query = Method<decltype(&PipelineState::QueryInterface)>(pipeline, 0);

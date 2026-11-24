@@ -8,8 +8,15 @@ void AnyBox::Graphics::CommandList::bindPipeline(PipelineState* next) {
     PipelineState::AddRef(next);
     if (pipeline) PipelineState::Release(pipeline);
     pipeline = next;
-    const auto& words = next->GetInlineCommands();
-    std::memcpy(guest.driverState.data() + 0x544 - 56, words.data(), sizeof(words));
+    cachePipeline();
+}
+
+void AnyBox::Graphics::CommandList::cachePipeline() noexcept {
+    auto* destination = guest.driverState.data() + 0x544 - 56;
+    if (pipeline) {
+        const auto& words = pipeline->GetInlineCommands();
+        std::memcpy(destination, words.data(), sizeof(words));
+    } else std::memset(destination, 0, 32);
 }
 
 void AnyBox::Graphics::CommandList::SetPipelineState(CommandList* self, void* object) {
