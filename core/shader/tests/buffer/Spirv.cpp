@@ -15,6 +15,7 @@ void CheckGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::Comp
 void CheckGlobalConstants(AnyBox::Vulkan::Context& context);
 void CheckFloatBits(AnyBox::Vulkan::Context& context);
 void CheckBufferBarriers(AnyBox::Vulkan::Context& context);
+void CheckAddressLoads(AnyBox::Vulkan::Context& context);
 }
 void CheckRuntimeComputeMemory(AnyBox::Vulkan::Context& context);
 
@@ -63,6 +64,7 @@ void BufferTests::CheckSpirv() {
     CheckGlobalConstants(context);
     CheckSharedGpu(context);
     CheckBufferBarriers(context);
+    CheckAddressLoads(context);
     CheckConstants(context);
     CheckBitFields(context);
     CheckUnaryBitsGpu(context);
