@@ -1,5 +1,6 @@
 #include <anybox/shader/Requirements.hpp>
 #include <anybox/graphics/container/Dxil.hpp>
+#include <anybox/graphics/container/Native.hpp>
 #include <stdexcept>
 #include <string>
 
@@ -38,6 +39,16 @@ std::optional<std::uint32_t> AnyBox::Shader::GetComputeWaveSize(std::span<const 
         }
     }
     if (!usesWaveOperations) return std::nullopt;
+    if (!waveSize) {
+        for (std::uint32_t index = 0; index < program.GetEmbeddedPartCount(); ++index) {
+            auto part = program.GetEmbeddedPart(index);
+            if (part.tag != 13) continue;
+            auto native = UnpackXbch(part.data);
+            auto size = FssmView(native).GetWaveSize();
+            if (waveSize && *waveSize != size) throw std::runtime_error("Xbox compute shader native variants require different wave sizes");
+            waveSize = size;
+        }
+    }
     if (!waveSize) throw std::runtime_error("Xbox compute shader wave size is unspecified");
     return waveSize;
 }

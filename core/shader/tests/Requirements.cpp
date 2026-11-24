@@ -4,6 +4,8 @@
 #include "Fixtures.hpp"
 #include <array>
 
+void CheckNativeWaveRequirements();
+
 namespace {
 using namespace Fixtures;
 using namespace AnyBox::Graphics::Container;
@@ -15,6 +17,7 @@ std::vector<std::byte> MakeContainer(std::span<const std::byte> program, bool wa
 }
 
 void Check() {
+    CheckNativeWaveRequirements();
     using AnyBox::Shader::GetComputeWaveSize;
     auto program = MakeXboxProgram();
     Require(GetComputeWaveSize(MakeContainer(program, true)) == 32u);
