@@ -1,16 +1,10 @@
 #include <anybox/shader/ComputeCompiler.hpp>
 #include "Validation.hpp"
+#include "Bindings.hpp"
 #include "WaveControl.hpp"
 #include "Spanned.hpp"
 #include "choices/Choice.hpp"
 #include "reductions/Optimize.hpp"
-#include <Optimization/ConstantFolder.hpp>
-#include <Optimization/DeadCodeEliminator.hpp>
-#include <Optimization/ResourceTracker.hpp>
-#include <Optimization/ResourceMaterializer.hpp>
-#include <Optimization/RedundantValueEliminator.hpp>
-#include <Optimization/ShaderInfoCollector.hpp>
-#include <Optimization/SrtWalker.hpp>
 #include <spirv/unified1/spirv.hpp>
 #include <algorithm>
 #include <limits>
@@ -35,32 +29,9 @@ AnyBox::Shader::ComputeCompilation AnyBox::Shader::CompileCompute(ShaderRecompil
     program.Info().sharedMemoryBytes = program.Metadata().splitState ? stageInput.ldsSizeDwords * 4 : 0;
     if (program.Info().scratchDwords != 0 && input.scratchSizeDwords != 0 && program.Info().scratchDwords != input.scratchSizeDwords) throw std::invalid_argument("Local storage and compute scratch sizes do not match");
     if (program.Info().scratchDwords == 0) program.Info().scratchDwords = input.scratchSizeDwords;
-    ValidateProgram(program, true);
-    for (const auto& block : program.Blocks()) {
-        for (auto iterator = block->Instructions().begin(); iterator != block->Instructions().end();) {
-            auto* instruction = *iterator++;
-            auto opcode = instruction->Opcode();
-            if (opcode == IrOpcode::Branch || opcode == IrOpcode::BranchConditional || opcode == IrOpcode::Return) block->RemoveInstruction(instruction);
-        }
-    }
-    ConstantFolder{}.Fold(program);
-    ResolveControlFlowIdentities(program);
-    DeadCodeEliminator{}.RemoveIdentities(program);
-    DeadCodeEliminator{}.Eliminate(program);
-    if (PlanDescriptorChoices(program) != 0) DeadCodeEliminator{}.Eliminate(program);
-    ValidateProgram(program, true);
-    SrtWalker{}.BuildPlan(program);
-    ResourceTracker{}.Track(program);
-    auto nativeOffsets = target.nonConstantImageOffsets && std::ranges::find(target.supportedCapabilities, static_cast<std::uint32_t>(spv::CapabilityImageGatherExtended)) != target.supportedCapabilities.end();
-    ResourceMaterializer{}.ApplyStaticInterface(program, nativeOffsets);
-    DeadCodeEliminator{}.RemoveIdentities(program);
-    (void)RedundantValueEliminator{}.Eliminate(program);
-    DeadCodeEliminator{}.Eliminate(program);
     ShaderStageInputInfo stage{nullptr, nullptr, &stageInput};
-    ShaderInfoCollector{}.Collect(program, stage);
-    auto allocation = BindingAllocator{}.Allocate(program, layout, target.registrationModules);
     ComputeCompilation result;
-    result.bindings = std::move(static_cast<CompiledBindingLayout&>(allocation));
+    result.bindings = PrepareShaderBindings(program, stage, target, layout);
     result.code = SpirvEmitter{}.Emit(program, stage, result.bindings, target, &result.info);
     if (spanned && (!result.info.fullSubgroups || result.info.anySubgroupSize != target.spannedAnySubgroup)) throw std::runtime_error("Spanned compute compilation produced an incompatible invocation layout");
     ValidateSpirv(result.code, target.vulkanVersion);

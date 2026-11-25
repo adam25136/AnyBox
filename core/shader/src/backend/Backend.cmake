@@ -1,4 +1,4 @@
-add_library(anybox_compute_shader STATIC src/backend/Compute.cpp)
+add_library(anybox_compute_shader STATIC src/backend/Compute.cpp src/backend/Pixel.cpp src/backend/Bindings.cpp)
 target_sources(anybox_compute_shader PRIVATE src/backend/WaveControl.cpp)
 target_sources(anybox_compute_shader PRIVATE src/backend/control/LocalExpression.cpp)
 target_sources(anybox_compute_shader PRIVATE src/backend/control/Arithmetic.cpp src/backend/control/UniformRules.cpp src/backend/control/UniformGraph.cpp)

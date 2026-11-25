@@ -1,11 +1,11 @@
 #include <anybox/shader/NativeCompute.hpp>
 #include "Optimize.hpp"
+#include "Options.hpp"
 #include "ScratchWrites.hpp"
 #include "Slices.hpp"
 #include <Translation/InstructionTranslator.hpp>
 #include <Optimization/SsaBuilder.hpp>
 #include <Recompiler.hpp>
-#include <spirv/unified1/spirv.hpp>
 #include <algorithm>
 #include <stdexcept>
 
@@ -36,21 +36,9 @@ AnyBox::Shader::NativeComputeTranslation AnyBox::Shader::LowerNativeCompute(cons
     input.tgSizeEn = (state.resourceControl & 0x400) != 0;
     input.ldsSizeDwords = ((state.resourceControl >> 15) & 511) * 128;
     for (unsigned axis = 0; axis < 3; ++axis) input.groupId[axis] = (state.resourceControl & (128u << axis)) != 0;
-    TranslateOptions options;
-    options.stage = ShaderStageKind::Compute;
-    options.waveSize = input.waveSize;
-    options.userDataCount = userRegisters;
+    auto options = MakeNativeOptions(ShaderStageKind::Compute, input.waveSize, userRegisters, floatMode, target);
     options.sharedMemoryBytes = input.ldsSizeDwords * 4;
-    options.floatMode = floatMode;
     options.inputInfo.compute = &input;
-    auto supports = [&](spv::Capability capability) { return std::ranges::find(target.supportedCapabilities, static_cast<std::uint32_t>(capability)) != target.supportedCapabilities.end(); };
-    options.nativeFloat16 = supports(spv::CapabilityFloat16) && supports(spv::CapabilityRoundingModeRTE) && supports(spv::CapabilityDenormPreserve);
-    options.nativeFloat16Fma = options.nativeFloat16 && supports(spv::CapabilityFMAKHR);
-    options.nativeInteger16 = supports(spv::CapabilityInt16);
-    options.float64 = supports(spv::CapabilityFloat64);
-    options.float32FlushToZero = target.float32FlushToZero;
-    options.float32FlushDeclared = supports(spv::CapabilityDenormFlushToZero);
-    options.float32DenormPreserve = target.float32DenormPreserve;
     auto adjusted = RemoveUnusedScratchWrites(frontend.GetDecoded());
     result.program = TranslateNativeProgram(adjusted ? *adjusted : frontend.GetDecoded(), frontend.GetGraph(), options);
     SsaBuilder{}.Rewrite(result.program);
