@@ -63,8 +63,10 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "dx.op.waveGetLaneCount") return waveBuiltin(instruction, 112);
     if (identifier == "dx.op.waveAllOp") return waveCount(instruction);
     if (identifier == "dx.op.waveActiveOp.f32") return waveReduction(instruction);
-    if (identifier == "dx.op.waveActiveOp.i32") return waveInteger(instruction, false);
-    if (identifier == "dx.op.wavePrefixOp.i32") return waveInteger(instruction, true);
+    if (identifier == "dx.op.waveActiveOp.i32" || identifier == "dx.op.wavePrefixOp.i32" || identifier == "dx.op.waveActiveOp.i64" || identifier == "dx.op.wavePrefixOp.i64") {
+        if (width(instruction) != (identifier.ends_with("i64") ? 64u : 32u)) throw std::runtime_error("DXIL integer wave overload has an invalid result type");
+        return waveInteger(instruction, identifier.starts_with("dx.op.wavePrefixOp"));
+    }
     if (identifier == "xbox.global_atomic_fmin") return globalFloatAtomic(instruction, false);
     if (identifier == "xbox.global_atomic_fmax") return globalFloatAtomic(instruction, true);
     if (identifier == "xbox.global_atomic_add") return globalIntegerAtomic(instruction, false);

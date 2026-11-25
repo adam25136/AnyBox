@@ -1,12 +1,14 @@
 #include "Scalar.hpp"
+#include "WaveSum.hpp"
 #include <cast.hpp>
 
 using namespace ShaderRecompiler;
 using AnyBox::Shader::Dxil::ScalarLowering;
 
 IrValue& ScalarLowering::waveInteger(const LLVMBC::CallInst& instruction, bool prefix) {
-    if (instruction.getNumArgOperands() != 4 || width(instruction) != 32) throw std::runtime_error("DXIL integer wave operation has an invalid signature");
-    if (width(*instruction.getArgOperand(0)) != 32 || width(*instruction.getArgOperand(1)) != 32 || width(*instruction.getArgOperand(2)) != 8 || width(*instruction.getArgOperand(3)) != 8) throw std::runtime_error("DXIL integer wave operation has invalid operand types");
+    auto bits = width(instruction);
+    if (instruction.getNumArgOperands() != 4 || (bits != 32 && bits != 64)) throw std::runtime_error("DXIL integer wave operation has an invalid signature");
+    if (width(*instruction.getArgOperand(0)) != 32 || width(*instruction.getArgOperand(1)) != bits || width(*instruction.getArgOperand(2)) != 8 || width(*instruction.getArgOperand(3)) != 8) throw std::runtime_error("DXIL integer wave operation has invalid operand types");
     auto constant = [&](unsigned index) {
         auto* value = LLVMBC::dyn_cast<LLVMBC::ConstantInt>(instruction.getArgOperand(index));
         if (!value) throw std::runtime_error("DXIL integer wave control operands must be constant");
@@ -18,25 +20,19 @@ IrValue& ScalarLowering::waveInteger(const LLVMBC::CallInst& instruction, bool p
 
     auto& source = Get(*instruction.getArgOperand(1));
     auto& ballot = builder.Emit(IrOpcode::Ballot, IrType::Vec4U32, {&builder.ConstantBool(true)});
-    auto& low = builder.CompositeExtract(ballot, 0);
-    auto& high = builder.CompositeExtract(ballot, 1);
-    auto& lowFirst = builder.Emit(IrOpcode::FindILsb32, IrType::U32, {&low});
-    IrValue* first = &lowFirst;
-    if (waveSize == 64) {
-        auto& highFirst = builder.Emit(IrOpcode::FindILsb32, IrType::U32, {&high});
-        first = &builder.Select(builder.IEqual(low, builder.Constant(0)), builder.IAdd(highFirst, builder.Constant(32)), lowFirst);
+    if (bits == 32) return SumWaveWords(builder, source, ballot, waveSize, prefix);
+    if (auto* constantValue = LLVMBC::dyn_cast<LLVMBC::ConstantInt>(instruction.getArgOperand(1))) {
+        auto& count = CountWaveLanes(builder, ballot, waveSize, prefix);
+        auto& wideCount = builder.ConstructU64(count, builder.Constant(0));
+        return builder.Emit(IrOpcode::IMul64, IrType::U64, {&wideCount, &builder.ConstantU64(constantValue->getUniqueInteger().getZExtValue())});
     }
-    auto& ownLane = builder.Emit(IrOpcode::LaneId, IrType::U32, {});
-    IrValue* result = &builder.Constant(0);
-    for (unsigned lane = 0; lane < waveSize; ++lane) {
-        auto& word = lane < 32 ? low : high;
-        auto& bit = builder.BitwiseAnd(word, builder.Constant(std::uint32_t{1} << (lane & 31)));
-        auto& present = builder.INotEqual(bit, builder.Constant(0));
-        auto& index = builder.Select(present, builder.Constant(lane), *first);
-        auto& value = builder.Emit(IrOpcode::ReadLane, IrType::U32, {&source, &index});
-        auto& included = prefix ? builder.LogicalAnd(present, builder.ULessThan(builder.Constant(lane), ownLane)) : present;
-        auto& term = builder.Select(included, value, builder.Constant(0));
-        result = &builder.IAdd(*result, term);
-    }
-    return *result;
+    auto& low = builder.CompositeExtract(source, 0);
+    auto& high = builder.CompositeExtract(source, 1);
+    auto& lowerSum = SumWaveWords(builder, builder.BitwiseAnd(low, builder.Constant(65535)), ballot, waveSize, prefix);
+    auto& upperSum = SumWaveWords(builder, builder.ShiftRightLogical(low, builder.Constant(16)), ballot, waveSize, prefix);
+    auto& highSum = SumWaveWords(builder, high, ballot, waveSize, prefix);
+    auto& middle = builder.IAdd(upperSum, builder.ShiftRightLogical(lowerSum, builder.Constant(16)));
+    auto& resultLow = builder.BitwiseOr(builder.BitwiseAnd(lowerSum, builder.Constant(65535)), builder.ShiftLeftLogical(middle, builder.Constant(16)));
+    auto& resultHigh = builder.IAdd(highSum, builder.ShiftRightLogical(middle, builder.Constant(16)));
+    return builder.ConstructU64(resultLow, resultHigh);
 }
