@@ -39,7 +39,9 @@ void CheckAll(AnyBox::Vulkan::Context& context, bool prefix) {
         masks.push_back(~(std::uint64_t{1} << bit));
     }
     for (unsigned wave : {32u, 64u}) {
-        for (unsigned mode = 0; mode < 3; ++mode) CheckGpu(context, wave, 128, masks, mode, prefix);
+        for (unsigned mode = 0; mode < 3; ++mode) {
+            for (std::size_t first = 0; first < masks.size(); first += 16) CheckGpu(context, wave, 128, std::span(masks).subspan(first, std::min<std::size_t>(16, masks.size() - first)), mode, prefix);
+        }
         for (unsigned threads : {1u, 17u, 33u, 65u, 95u, 127u}) CheckGpu(context, wave, threads, std::span(masks).first(5), 2, prefix);
     }
 }
