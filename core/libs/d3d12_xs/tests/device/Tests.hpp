@@ -45,6 +45,7 @@ void CheckCommittedTextureLegacy(Device* device);
 void CheckQueues(Device* device);
 void CheckFences(Device* device);
 void CheckQueryHeaps(Device* device);
+void CheckCommandSignatures(Device* device);
 void CheckAllocators(Device* device);
 void CheckLists(Device* device);
 void CheckRoots(Device* device);

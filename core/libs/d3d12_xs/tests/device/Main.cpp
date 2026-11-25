@@ -61,6 +61,7 @@ int main(int argc, char** argv) {
             CheckQueues(device);
             CheckFences(device);
             CheckQueryHeaps(device);
+            CheckCommandSignatures(device);
             CheckAllocators(device);
             CheckLists(device);
             CheckRoots(device);
