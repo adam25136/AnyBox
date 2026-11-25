@@ -5,6 +5,7 @@
 
 void CheckColorTargets();
 void CheckStorageViews();
+void CheckSamplers();
 
 namespace {
 template<class TException, class TCallable>
@@ -62,6 +63,6 @@ void CheckInvalid() {
 }
 
 int main() {
-    try { CheckReferences(); CheckInvalid(); CheckColorTargets(); CheckStorageViews(); return 0; }
+    try { CheckReferences(); CheckInvalid(); CheckColorTargets(); CheckStorageViews(); CheckSamplers(); return 0; }
     catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

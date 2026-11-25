@@ -40,6 +40,7 @@ AnyBox::Graphics::DeviceTable MakeTable(std::index_sequence<TSlots...>) {
     result[41] = MethodAddress(&Device::CreateCommandSignature);
     result[43] = MethodAddress(&Device::GetAdapterLuid);
     result[48] = MethodAddress(&Device::CreateCommandQueueX);
+    result[61] = MethodAddress(&Device::CreateSamplerX);
     result[62] = MethodAddress(&Device::CreateComputePipelineStateX);
     result[70] = MethodAddress(&Device::CreateShaderResourceViewX);
     result[73] = MethodAddress(&Device::CreateCommandListX);

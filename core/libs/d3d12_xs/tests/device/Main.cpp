@@ -74,6 +74,7 @@ int main(int argc, char** argv) {
             CheckPhysicalHeap(device);
             CheckPlacedBuffer(device);
             CheckDescriptorHeaps(device);
+            CheckSamplers(device);
             CheckNullShaderViews(device);
             CheckNullUnorderedViews(device);
             CheckConstantViews(device);

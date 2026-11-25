@@ -21,6 +21,8 @@
 
 namespace AnyBox::Vulkan { class Context; class Buffer; }
 
+namespace AnyBox::Descriptor { struct SamplerDescription; }
+
 namespace AnyBox::Graphics {
 using DeviceMethod = std::array<std::byte, sizeof(void (*)())>;
 using ObjectTable = std::array<DeviceMethod, 128>;
@@ -96,6 +98,7 @@ public:
     static HRESULT CreateDescriptorHeap(Device* self, const D3D12_DESCRIPTOR_HEAP_DESC* description, const Guid& interfaceId, void** heap);
     static void CreateShaderResourceView(Device* self, void* resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* description, std::uint64_t destination);
     static void CreateShaderResourceViewX(Device* self, const D3D12_RESOURCE_DESC* resource, const XboxShaderViewDescription* description, std::uint64_t destination);
+    static void CreateSamplerX(Device* self, const Descriptor::SamplerDescription* description, std::uint64_t destination);
     static void CreateConstantBufferView(Device* self, const D3D12_CONSTANT_BUFFER_VIEW_DESC* description, std::uint64_t destination);
     static void CreateUnorderedAccessView(Device* self, void* resource, void* counterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC* description, std::uint64_t destination);
     static void CreateRenderTargetView(Device* self, void* resource, const D3D12_RENDER_TARGET_VIEW_DESC* description, std::uint64_t destination);
