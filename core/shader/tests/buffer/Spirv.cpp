@@ -16,7 +16,7 @@ void CheckGlobalConstants(AnyBox::Vulkan::Context& context);
 void CheckFloatBits(AnyBox::Vulkan::Context& context);
 void CheckBufferBarriers(AnyBox::Vulkan::Context& context);
 void CheckAddressLoads(AnyBox::Vulkan::Context& context);
-void CheckUnsignedExtrema3(AnyBox::Vulkan::Context& context);
+void CheckIntegerTernary(AnyBox::Vulkan::Context& context);
 void CheckIntegerMinMax(AnyBox::Vulkan::Context& context);
 void CheckStructuredPhi(AnyBox::Vulkan::Context& context);
 }
@@ -68,7 +68,7 @@ void BufferTests::CheckSpirv() {
     CheckSharedGpu(context);
     CheckBufferBarriers(context);
     CheckAddressLoads(context);
-    CheckUnsignedExtrema3(context);
+    CheckIntegerTernary(context);
     CheckIntegerMinMax(context);
     CheckStructuredPhi(context);
     CheckConstants(context);

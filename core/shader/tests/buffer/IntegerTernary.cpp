@@ -3,7 +3,7 @@
 #include <algorithm>
 
 namespace {
-const char* Name(unsigned mode) { return mode == 14 ? "xbox.Min3_U32" : mode == 15 ? "xbox.Max3_U32" : "xbox.Med3_U32"; }
+const char* Name(unsigned mode) { return mode == 23 ? "xbox.BFI" : mode == 14 ? "xbox.Min3_U32" : mode == 15 ? "xbox.Max3_U32" : "xbox.Med3_U32"; }
 
 ShaderRecompiler::IrProgram MakeKernel(unsigned mode) {
     using namespace ShaderRecompiler;
@@ -56,9 +56,9 @@ void CheckInvalid(unsigned mode) {
 }
 
 namespace BufferTests {
-void CheckUnsignedExtrema3(AnyBox::Vulkan::Context& context) {
+void CheckIntegerTernary(AnyBox::Vulkan::Context& context) {
     std::array<std::uint32_t, 16> input{0, 1, 2, 3, 31, 32, 255, 256, 0x7FFFFFFF, 0x80000000, 0x80000001, UINT32_MAX, UINT32_MAX - 1, 0xAAAAAAAA, 0x55555555, 0x12345678};
-    for (unsigned mode : {14u, 15u, 16u}) {
+    for (unsigned mode : {14u, 15u, 16u, 23u}) {
         CheckInvalid(mode);
         auto program = MakeKernel(mode);
         ShaderRecompiler::ShaderComputeInputInfo info;
@@ -72,7 +72,7 @@ void CheckUnsignedExtrema3(AnyBox::Vulkan::Context& context) {
                 for (auto third : input) {
                     std::array values{first, second, third};
                     std::sort(values.begin(), values.end());
-                    expected.push_back(values[mode == 14 ? 0 : mode == 15 ? 2 : 1]);
+                    expected.push_back(mode == 23 ? (first & second) | (~first & third) : values[mode == 14 ? 0 : mode == 15 ? 2 : 1]);
                 }
             }
         }

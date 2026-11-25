@@ -3,6 +3,7 @@
 #include "FloatBits.hpp"
 #include "AddressLoad.hpp"
 #include "IntegerExtrema.hpp"
+#include "BitSelect.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -33,6 +34,7 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "xbox.Min3_U32") return LowerUnsignedExtrema3(instruction, *this, builder, 14);
     if (identifier == "xbox.Max3_U32") return LowerUnsignedExtrema3(instruction, *this, builder, 15);
     if (identifier == "xbox.Med3_U32") return LowerUnsignedExtrema3(instruction, *this, builder, 16);
+    if (identifier == "xbox.BFI") return LowerBitSelect(instruction, *this, builder);
     if (identifier == "dx.op.dot2.f32") return floatDot(instruction, 2);
     if (identifier == "dx.op.dot3.f32") return floatDot(instruction, 3);
     if (identifier == "dx.op.dot4.f32") return floatDot(instruction, 4);
