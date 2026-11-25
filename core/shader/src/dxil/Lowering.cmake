@@ -24,6 +24,8 @@ target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/BufferAccess.cpp s
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/ScalarValues.cpp src/dxil/lowering/Float.cpp src/dxil/lowering/FloatCompare.cpp src/dxil/lowering/FloatIntrinsic.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/LocalLayout.cpp src/dxil/lowering/LocalPointer.cpp src/dxil/lowering/LocalMemory.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/SharedLayout.cpp)
+target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/LocalAtomic.cpp)
+target_sources(anybox_dxil_lowering PRIVATE src/dxil/bitcode/AtomicAttributes.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/ConstantLayout.cpp src/dxil/lowering/ConstantRead.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/ConstantBuffer.cpp src/dxil/lowering/Half.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/InlineConstants.cpp src/dxil/arguments/Read.cpp src/dxil/arguments/RootBindings.cpp)

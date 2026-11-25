@@ -17,6 +17,7 @@ public:
     void Prepare(const LLVMBC::Function& function);
     bool Emit(const LLVMBC::Instruction& instruction, ScalarLowering& scalar);
     ShaderRecompiler::IrValue& Load(const LLVMBC::LoadInst& instruction, ScalarLowering& scalar);
+    ShaderRecompiler::IrValue& Atomic(const LLVMBC::AtomicRMWInst& instruction, ScalarLowering& scalar);
 
 private:
     using IrValue = ShaderRecompiler::IrValue;

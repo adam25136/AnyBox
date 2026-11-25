@@ -20,6 +20,7 @@ void CheckIntegerTernary(AnyBox::Vulkan::Context& context);
 void CheckIntegerMinMax(AnyBox::Vulkan::Context& context);
 void CheckStructuredPhi(AnyBox::Vulkan::Context& context);
 void CheckWideStorage(AnyBox::Vulkan::Context& context);
+void CheckSharedAtomic(AnyBox::Vulkan::Context& context);
 void CheckMakeUniform(AnyBox::Vulkan::Context& context);
 void CheckBallot64(AnyBox::Vulkan::Context& context);
 void CheckWave64Control(AnyBox::Vulkan::Context& context);
@@ -77,6 +78,7 @@ void BufferTests::CheckSpirv() {
     CheckIntegerMinMax(context);
     CheckStructuredPhi(context);
     CheckWideStorage(context);
+    CheckSharedAtomic(context);
     CheckMakeUniform(context);
     CheckBallot64(context);
     CheckWave64Control(context);

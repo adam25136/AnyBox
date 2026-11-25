@@ -44,6 +44,9 @@ IrValue& ScalarLowering::Get(const LLVMBC::Value& value) {
     if (auto* loadedInstruction = LLVMBC::dyn_cast<LLVMBC::LoadInst>(&value)) {
         if (!locals) throw std::runtime_error("DXIL local load has no local storage configuration");
         output = &locals->Load(*loadedInstruction, *this);
+    } else if (auto* atomicInstruction = LLVMBC::dyn_cast<LLVMBC::AtomicRMWInst>(&value)) {
+        if (!locals) throw std::runtime_error("DXIL shared atomic has no local storage configuration");
+        output = &locals->Atomic(*atomicInstruction, *this);
     } else if (LLVMBC::isa<LLVMBC::UndefValue>(&value)) {
         if (resultType == IrType::F32) output = &builder.ConstantF32(0);
         else if (resultType == IrType::Bool) output = &builder.ConstantBool(false);
