@@ -61,6 +61,8 @@ void AnyBox::Shader::Dxil::MaskComputePadding(ShaderRecompiler::IrProgram& progr
                 Mask(program, *block, *instruction, 0, active);
             } else if (opcode == IrOpcode::ReadFirstLane) {
                 Mask(program, *block, *instruction, 1, active);
+            } else if (opcode == IrOpcode::SwizzleU32) {
+                Mask(program, *block, *instruction, 2, active);
             } else if (ImageOpcodeInfoOf(opcode).access != ImageAccess::None) {
                 throw std::runtime_error("DXIL padded image operations are not implemented");
             } else if (IrOpcodeHasSideEffects(opcode) && opcode != IrOpcode::Reference && opcode != IrOpcode::Branch && opcode != IrOpcode::BranchConditional && opcode != IrOpcode::Return && opcode != IrOpcode::Barrier && opcode != IrOpcode::SetGotoVariable) {

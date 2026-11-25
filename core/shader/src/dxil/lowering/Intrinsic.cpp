@@ -6,6 +6,7 @@
 #include "BitSelect.hpp"
 #include "MakeUniform.hpp"
 #include "Ballot.hpp"
+#include "LaneSwizzle.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -40,6 +41,7 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "xbox.MakeUniform.i32") return LowerMakeUniform(instruction, *this, builder, program, 32);
     if (identifier == "xbox.MakeUniform.i64") return LowerMakeUniform(instruction, *this, builder, program, 64);
     if (identifier == "xbox.Ballot64") return LowerBallot64(instruction, *this, builder, program);
+    if (identifier == "xbox.LaneSwizzle.i32") return LowerLaneSwizzle(instruction, *this, builder, program);
     if (identifier == "dx.op.dot2.f32") return floatDot(instruction, 2);
     if (identifier == "dx.op.dot3.f32") return floatDot(instruction, 3);
     if (identifier == "dx.op.dot4.f32") return floatDot(instruction, 4);
