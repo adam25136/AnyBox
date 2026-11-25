@@ -23,6 +23,7 @@ void CheckWideStorage(AnyBox::Vulkan::Context& context);
 void CheckSharedAtomic(AnyBox::Vulkan::Context& context);
 void CheckMakeUniform(AnyBox::Vulkan::Context& context);
 void CheckLaneSwizzle(AnyBox::Vulkan::Context& context);
+void CheckConditionalMask(AnyBox::Vulkan::Context& context);
 void CheckBallot64(AnyBox::Vulkan::Context& context);
 void CheckWave64Control(AnyBox::Vulkan::Context& context);
 void CheckWave64Runtime(AnyBox::Vulkan::Context& context);
@@ -82,6 +83,7 @@ void BufferTests::CheckSpirv() {
     CheckSharedAtomic(context);
     CheckMakeUniform(context);
     CheckLaneSwizzle(context);
+    CheckConditionalMask(context);
     CheckBallot64(context);
     CheckWave64Control(context);
     CheckWave64Runtime(context);
