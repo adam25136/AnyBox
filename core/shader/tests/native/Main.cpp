@@ -9,6 +9,7 @@ void CheckNativeFlow();
 void CheckNativeScratchWrites();
 void CheckNativeImages();
 void CheckNativeFmaDecoding();
+void CheckNativePermlaneDecoding();
 void CheckDescriptorChoices();
 void CheckFirstLaneGuards();
 void CheckBallotFirstLaneGuards();
@@ -22,6 +23,7 @@ int main() {
         CheckNativeScratchWrites();
         CheckNativeImages();
         CheckNativeFmaDecoding();
+        CheckNativePermlaneDecoding();
         CheckDescriptorChoices();
         CheckFirstLaneGuards();
         CheckBallotFirstLaneGuards();
