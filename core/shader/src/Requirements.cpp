@@ -38,7 +38,6 @@ std::optional<std::uint32_t> AnyBox::Shader::GetComputeWaveSize(std::span<const 
             waveSize = option.value == "1" ? 32U : 64U;
         }
     }
-    if (!usesWaveOperations) return std::nullopt;
     if (!waveSize) {
         for (std::uint32_t index = 0; index < program.GetEmbeddedPartCount(); ++index) {
             auto embedded = program.GetEmbeddedPart(index);
@@ -49,6 +48,6 @@ std::optional<std::uint32_t> AnyBox::Shader::GetComputeWaveSize(std::span<const 
             waveSize = size;
         }
     }
-    if (!waveSize) throw std::runtime_error("Xbox compute shader wave size is unspecified");
+    if (!waveSize && usesWaveOperations) throw std::runtime_error("Xbox compute shader wave size is unspecified");
     return waveSize;
 }

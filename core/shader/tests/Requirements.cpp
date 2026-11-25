@@ -21,10 +21,10 @@ void Check() {
     using AnyBox::Shader::GetComputeWaveSize;
     auto program = MakeXboxProgram();
     Require(GetComputeWaveSize(MakeContainer(program, true)) == 32u);
-    Require(!GetComputeWaveSize(MakeContainer(program, false)));
+    Require(GetComputeWaveSize(MakeContainer(program, false)) == 32u);
     program[120] = std::byte{'0'};
     Require(GetComputeWaveSize(MakeContainer(program, true)) == 64u);
-    Require(!GetComputeWaveSize(MakeContainer(program, false)));
+    Require(GetComputeWaveSize(MakeContainer(program, false)) == 64u);
     program[120] = std::byte{'2'};
     Reject<std::invalid_argument>([&] { GetComputeWaveSize(MakeContainer(program, true)); });
     Reject<std::invalid_argument>([&] { GetComputeWaveSize(MakeContainer(program, false)); });
