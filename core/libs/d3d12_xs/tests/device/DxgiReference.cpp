@@ -18,7 +18,9 @@ AnyBox::Graphics::ComOwner<IDXGIOutput1> AnyBox::Graphics::Tests::GetReferenceOu
     Require(factory->EnumAdapterByLuid(adapter, adapterId, &object) == S_OK && object, "Reference DXGI adapter lookup failed");
     ComOwner<IDXGIAdapter> nativeAdapter(static_cast<IDXGIAdapter*>(object));
     IDXGIOutput* output = nullptr;
-    Require(nativeAdapter->EnumOutputs(0, &output) == S_OK && output, "Reference DXGI output lookup failed");
+    auto result = nativeAdapter->EnumOutputs(0, &output);
+    if (result == DXGI_ERROR_NOT_FOUND) return {};
+    Require(result == S_OK && output, "Reference DXGI output lookup failed");
     ComOwner<IDXGIOutput> nativeOutput(output);
     Require(nativeOutput->QueryInterface(outputId, &object) == S_OK && object, "Reference DXGI output interface query failed");
     return ComOwner<IDXGIOutput1>(static_cast<IDXGIOutput1*>(object));

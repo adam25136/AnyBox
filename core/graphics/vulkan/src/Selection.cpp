@@ -21,7 +21,7 @@ void AnyBox::Vulkan::Context::selectAdapter(const AdapterSelection& selection, s
     properties = physical.properties;
     if (!identity.deviceLUIDValid) throw std::runtime_error("Vulkan adapter has no Windows LUID");
     std::memcpy(adapterLuid.data(), identity.deviceLUID, adapterLuid.size());
-    if (properties.apiVersion < VK_API_VERSION_1_2) throw std::runtime_error("Vulkan adapter does not support API version 1.2");
+    if (properties.apiVersion < VK_API_VERSION_1_2) throw AdapterIncompatible("Vulkan adapter does not support API version 1.2");
     hostPointerAlignment = host.minImportedHostPointerAlignment;
     instanceFunctions.getMemoryProperties(physicalDevice, &memoryProperties);
     instanceFunctions.getQueueFamilies(physicalDevice, &count, nullptr);
@@ -29,14 +29,14 @@ void AnyBox::Vulkan::Context::selectAdapter(const AdapterSelection& selection, s
     instanceFunctions.getQueueFamilies(physicalDevice, &count, families.data());
     constexpr auto required = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT;
     auto family = std::ranges::find_if(families, [&](const auto& value) { return (value.queueFlags & required) == required && value.queueCount >= queueCount; });
-    if (family == families.end()) throw std::runtime_error("Vulkan adapter has no universal queue family with the requested queue count");
+    if (family == families.end()) throw AdapterIncompatible("Vulkan adapter has no universal queue family with the requested queue count");
     queueFamily = static_cast<std::uint32_t>(family - families.begin());
     Check(instanceFunctions.enumerateExtensions(physicalDevice, nullptr, &count, nullptr), "Count Vulkan device extensions");
     std::vector<VkExtensionProperties> extensions(count);
     Check(instanceFunctions.enumerateExtensions(physicalDevice, nullptr, &count, extensions.data()), "Enumerate Vulkan device extensions");
-    if (std::ranges::none_of(extensions, [](const auto& value) { return std::strcmp(value.extensionName, VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME) == 0; })) throw std::runtime_error("Vulkan host memory imports are unsupported");
+    if (std::ranges::none_of(extensions, [](const auto& value) { return std::strcmp(value.extensionName, VK_EXT_EXTERNAL_MEMORY_HOST_EXTENSION_NAME) == 0; })) throw AdapterIncompatible("Vulkan host memory imports are unsupported");
     if (hostPointerAlignment == 0) throw std::runtime_error("Vulkan host pointer alignment is zero");
-    if (std::ranges::none_of(extensions, [](const auto& value) { return std::strcmp(value.extensionName, VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME) == 0; })) throw std::runtime_error("Vulkan Windows semaphore imports are unsupported");
+    if (std::ranges::none_of(extensions, [](const auto& value) { return std::strcmp(value.extensionName, VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME) == 0; })) throw AdapterIncompatible("Vulkan Windows semaphore imports are unsupported");
 }
 
 void AnyBox::Vulkan::Context::createDevice(std::uint32_t queueCount) {
@@ -52,9 +52,9 @@ void AnyBox::Vulkan::Context::createDevice(std::uint32_t queueCount) {
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features.pNext = &address;
     instanceFunctions.getFeatures(physicalDevice, &features);
-    if (!address.bufferDeviceAddress) throw std::runtime_error("Vulkan buffer device addresses are unsupported");
-    if (!features.features.shaderInt64) throw std::runtime_error("Vulkan shader 64-bit integers are unsupported");
-    if (!timeline.timelineSemaphore) throw std::runtime_error("Vulkan timeline semaphores are unsupported");
+    if (!address.bufferDeviceAddress) throw AdapterIncompatible("Vulkan buffer device addresses are unsupported");
+    if (!features.features.shaderInt64) throw AdapterIncompatible("Vulkan shader 64-bit integers are unsupported");
+    if (!timeline.timelineSemaphore) throw AdapterIncompatible("Vulkan timeline semaphores are unsupported");
     VkPhysicalDeviceFeatures enabled{};
     enabled.shaderInt64 = VK_TRUE;
     enabled.textureCompressionBC = features.features.textureCompressionBC;
