@@ -38,4 +38,5 @@ void LocalLowering::Prepare(const LLVMBC::Function& function) {
             program.Info().scratchDwords += bytes / 4;
         }
     }
+    preparePrivateGlobals(function);
 }

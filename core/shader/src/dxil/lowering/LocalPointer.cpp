@@ -13,6 +13,7 @@ LocalLowering::Pointer LocalLowering::resolve(const LLVMBC::Value& value, Scalar
     if (auto found = allocations.find(&value); found != allocations.end()) {
         pointer = {found->second, value.getType()->getPointerElementType(), &builder.ConstantU64(0), 0};
     } else if (auto* variable = LLVMBC::dyn_cast<LLVMBC::GlobalVariable>(&value)) {
+        if (!variable->isConstant() && value.getType()->getPointerAddressSpace() == 0) throw std::runtime_error("DXIL private global was not prepared at function entry");
         auto allocation = variable->isConstant() ? constantAllocation(*variable) : sharedAllocation(*variable);
         pointer = {std::move(allocation), value.getType()->getPointerElementType(), &builder.ConstantU64(0), 0};
     } else if (auto* instruction = LLVMBC::dyn_cast<LLVMBC::GetElementPtrInst>(&value)) {

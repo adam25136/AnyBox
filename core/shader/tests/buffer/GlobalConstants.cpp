@@ -3,6 +3,7 @@
 #include <string_view>
 
 namespace BufferTests { void CheckGlobalConstants(AnyBox::Vulkan::Context& context); }
+void CheckPrivateGlobals(AnyBox::Vulkan::Context& context);
 
 namespace {
 AnyBox::Shader::ComputeCompilation Compile(ShaderRecompiler::IrProgram& program) {
@@ -16,6 +17,7 @@ AnyBox::Shader::ComputeCompilation Compile(ShaderRecompiler::IrProgram& program)
 }
 
 void BufferTests::CheckGlobalConstants(AnyBox::Vulkan::Context& context) {
+    CheckPrivateGlobals(context);
     for (unsigned mode = 0; mode < 5; ++mode) {
         for (std::optional<std::int32_t> index : {std::optional<std::int32_t>{}, std::optional<std::int32_t>{0}, std::optional<std::int32_t>{7}}) {
             auto program = MakeConstantKernel(mode, index);

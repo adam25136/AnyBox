@@ -44,6 +44,8 @@ private:
     Access access(const Pointer& pointer, const LLVMBC::Type& type);
     ShaderRecompiler::MemoryFlags flags(bool shared, unsigned words = 1);
     Allocation sharedAllocation(const LLVMBC::GlobalVariable& variable);
+    Allocation privateAllocation(const LLVMBC::GlobalVariable& variable);
+    void preparePrivateGlobals(const LLVMBC::Function& function);
     Allocation constantAllocation(const LLVMBC::GlobalVariable& variable);
     static void appendConstants(const LLVMBC::Value& value, const LLVMBC::Type& type, std::vector<std::uint32_t>& words);
     IrValue& constantWord(const Pointer& pointer, const Access& access, unsigned component = 0);

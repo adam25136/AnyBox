@@ -1,12 +1,11 @@
 #pragma once
 
 #include "AtomicKernel.hpp"
+#include "GlobalWords.hpp"
 #include "lowering/Local.hpp"
 #include <optional>
 
 namespace BufferTests {
-inline constexpr std::array<std::uint32_t, 8> ConstantWords{0, 0x80000000, 0x7FC12345, 0x7F812345, 0x7F800000, 0xFF800000, 0x12345678, UINT32_MAX};
-
 inline ShaderRecompiler::IrProgram MakeConstantKernel(unsigned mode, std::optional<std::int32_t> constantIndex = {}, bool outside = false, bool write = false) {
     using namespace ShaderRecompiler;
     AtomicKernel fixture;
