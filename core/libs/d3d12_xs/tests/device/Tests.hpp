@@ -67,6 +67,7 @@ void CheckPlacedBuffer(Device* device);
 void CheckShaderBufferArguments(Device* device, Resource* resource);
 void CheckDescriptorHeaps(Device* device);
 void CheckSamplers(Device* device);
+void CheckDescriptorCopies(Device* device);
 void CheckNullShaderViews(Device* device);
 void CheckNullUnorderedViews(Device* device);
 void CheckConstantViews(Device* device);

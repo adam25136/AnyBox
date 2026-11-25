@@ -31,6 +31,8 @@ AnyBox::Graphics::DeviceTable MakeTable(std::index_sequence<TSlots...>) {
     result[18] = MethodAddress(&Device::CreateShaderResourceView);
     result[19] = MethodAddress(&Device::CreateUnorderedAccessView);
     result[20] = MethodAddress(&Device::CreateRenderTargetView);
+    result[23] = MethodAddress(&Device::CopyDescriptors);
+    result[24] = MethodAddress(&Device::CopyDescriptorsSimple);
     result[25] = MethodAddress(&Device::GetResourceAllocationInfo);
     result[26] = MethodAddress(&Device::GetCustomHeapProperties);
     result[27] = MethodAddress(&Device::CreateCommittedResource);

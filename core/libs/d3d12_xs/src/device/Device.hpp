@@ -98,6 +98,8 @@ public:
     static HRESULT CreateDescriptorHeap(Device* self, const D3D12_DESCRIPTOR_HEAP_DESC* description, const Guid& interfaceId, void** heap);
     static void CreateShaderResourceView(Device* self, void* resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* description, std::uint64_t destination);
     static void CreateShaderResourceViewX(Device* self, const D3D12_RESOURCE_DESC* resource, const XboxShaderViewDescription* description, std::uint64_t destination);
+    static void CopyDescriptorsSimple(Device* self, std::uint32_t count, std::uint64_t destination, std::uint64_t source, D3D12_DESCRIPTOR_HEAP_TYPE type);
+    static void CopyDescriptors(Device* self, std::uint32_t destinationCount, const std::uint64_t* destinations, const std::uint32_t* destinationSizes, std::uint32_t sourceCount, const std::uint64_t* sources, const std::uint32_t* sourceSizes, D3D12_DESCRIPTOR_HEAP_TYPE type);
     static void CreateSamplerX(Device* self, const Descriptor::SamplerDescription* description, std::uint64_t destination);
     static void CreateConstantBufferView(Device* self, const D3D12_CONSTANT_BUFFER_VIEW_DESC* description, std::uint64_t destination);
     static void CreateUnorderedAccessView(Device* self, void* resource, void* counterResource, const D3D12_UNORDERED_ACCESS_VIEW_DESC* description, std::uint64_t destination);
