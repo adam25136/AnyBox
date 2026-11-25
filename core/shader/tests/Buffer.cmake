@@ -37,6 +37,7 @@ target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveLocalProof.
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveRuntime.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Wave.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveCount.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/PrefixCount.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveBuiltins.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveInteger.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveMinimum.cpp)

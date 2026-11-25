@@ -15,6 +15,7 @@
 #include "UnaryInteger.hpp"
 #include "WaveReadLane.hpp"
 #include "WaveMinimum.hpp"
+#include "WaveCount.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -73,6 +74,7 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "dx.op.waveGetLaneIndex") return waveBuiltin(instruction, 111);
     if (identifier == "dx.op.waveGetLaneCount") return waveBuiltin(instruction, 112);
     if (identifier == "dx.op.waveAllOp") return waveCount(instruction);
+    if (identifier == "dx.op.wavePrefixOp") return LowerWaveBitCount(instruction, *this, builder, program, true);
     if (identifier == "dx.op.waveActiveOp.f32") return waveReduction(instruction);
     if (identifier == "dx.op.waveActiveOp.i32" || identifier == "dx.op.wavePrefixOp.i32" || identifier == "dx.op.waveActiveOp.i64" || identifier == "dx.op.wavePrefixOp.i64") {
         if (width(instruction) != (identifier.ends_with("i64") ? 64u : 32u)) throw std::runtime_error("DXIL integer wave overload has an invalid result type");

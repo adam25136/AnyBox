@@ -3,6 +3,8 @@
 #include "WaveKernel.hpp"
 #include <bit>
 
+void CheckPrefixBitCount(AnyBox::Vulkan::Context& context);
+
 namespace {
 void CheckActiveCount(AnyBox::Vulkan::Context& context, std::uint32_t mask) {
     auto program = BufferTests::MakeWaveKernel(mask, 32, 135);
@@ -72,6 +74,7 @@ void CheckInvalid() {
 
 void BufferTests::CheckWaveCountGpu(AnyBox::Vulkan::Context& context) {
     CheckInvalid();
+    CheckPrefixBitCount(context);
     std::vector<std::uint64_t> masks{0, UINT64_MAX, 0xFFFF000000000000ULL, 0xA55A8420F000000FULL};
     for (unsigned lane = 0; lane < 64; ++lane) masks.push_back(std::uint64_t{1} << lane);
     for (unsigned waveSize : {32u, 64u}) {
