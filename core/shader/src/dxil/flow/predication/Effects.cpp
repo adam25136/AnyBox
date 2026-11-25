@@ -54,6 +54,10 @@ bool Pure(IrOpcode opcode) {
         case IrOpcode::SelectF32:
         case IrOpcode::BitCastF32U32:
         case IrOpcode::BitCastU32F32:
+        case IrOpcode::BitCastU16F16:
+        case IrOpcode::BitCastF16U16:
+        case IrOpcode::ConvertU16U32:
+        case IrOpcode::ConvertU32U16:
         case IrOpcode::Branch: return true;
         default: return false;
     }

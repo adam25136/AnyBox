@@ -34,17 +34,18 @@ LocalLowering::Allocation LocalLowering::privateAllocation(const LLVMBC::GlobalV
     if (!variable.hasInitializer()) throw std::runtime_error("DXIL private global has no initializer");
     if (variable.getInitializer()->getType() != type->getPointerElementType()) throw std::runtime_error("DXIL private global initializer type differs from its allocation");
     auto bytes = size(*type->getPointerElementType());
+    auto wordCount = (static_cast<std::uint64_t>(bytes) + 3) / 4;
     auto base = static_cast<std::uint64_t>(program.Info().scratchDwords) * 4;
-    if (base > std::numeric_limits<std::uint32_t>::max() - bytes) throw std::length_error("DXIL private globals exceed the native scratch address range");
+    if (base + wordCount * 4 > std::numeric_limits<std::uint32_t>::max()) throw std::length_error("DXIL private globals exceed the native scratch address range");
     std::vector<std::uint32_t> words;
     if (!LLVMBC::isa<LLVMBC::UndefValue>(variable.getInitializer())) {
-        words.reserve(bytes / 4);
+        words.reserve(static_cast<std::size_t>(wordCount));
         appendConstants(*variable.getInitializer(), *type->getPointerElementType(), words);
-        if (words.size() != bytes / 4) throw std::logic_error("DXIL private global initializer size differs from its allocation");
+        if (words.size() != wordCount) throw std::logic_error("DXIL private global initializer size differs from its allocation");
     }
     Allocation allocation{static_cast<std::uint32_t>(base), bytes};
     if (!allocations.emplace(&variable, allocation).second) throw std::logic_error("DXIL private global was allocated twice");
-    program.Info().scratchDwords += bytes / 4;
+    program.Info().scratchDwords += static_cast<std::uint32_t>(wordCount);
     if (words.empty()) return allocation;
 
     auto& resource = builder.Emit(IrOpcode::GetScratchResource, IrType::AddressResource, {});

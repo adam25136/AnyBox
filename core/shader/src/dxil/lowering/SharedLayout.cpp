@@ -8,9 +8,10 @@ AnyBox::Shader::Dxil::LocalLowering::Allocation AnyBox::Shader::Dxil::LocalLower
     if (variable.hasInitializer() && !LLVMBC::isa<LLVMBC::UndefValue>(variable.getInitializer())) throw std::runtime_error("DXIL groupshared initializers are not implemented");
     auto bytes = size(*pointer->getPointerElementType());
     auto base = program.Info().sharedMemoryBytes;
-    if (base > std::numeric_limits<std::uint32_t>::max() - bytes) throw std::length_error("DXIL groupshared allocations exceed the native address range");
+    auto end = (static_cast<std::uint64_t>(base) + bytes + 3) & ~std::uint64_t{3};
+    if (end > std::numeric_limits<std::uint32_t>::max()) throw std::length_error("DXIL groupshared allocations exceed the native address range");
     Allocation allocation{base, bytes, true};
     allocations.emplace(&variable, allocation);
-    program.Info().sharedMemoryBytes += bytes;
+    program.Info().sharedMemoryBytes = static_cast<std::uint32_t>(end);
     return allocation;
 }

@@ -42,12 +42,13 @@ private:
     Pointer element(const LLVMBC::GetElementPtrInst& instruction, ScalarLowering& scalar);
     Pointer castPointer(const LLVMBC::Value& source, LLVMBC::Type* target, ScalarLowering& scalar);
     Access access(const Pointer& pointer, const LLVMBC::Type& type);
-    ShaderRecompiler::MemoryFlags flags(bool shared, unsigned words = 1);
+    ShaderRecompiler::MemoryFlags flags(bool shared, unsigned words = 1, unsigned bits = 32);
     Allocation sharedAllocation(const LLVMBC::GlobalVariable& variable);
     Allocation privateAllocation(const LLVMBC::GlobalVariable& variable);
     void preparePrivateGlobals(const LLVMBC::Function& function);
     Allocation constantAllocation(const LLVMBC::GlobalVariable& variable);
     static void appendConstants(const LLVMBC::Value& value, const LLVMBC::Type& type, std::vector<std::uint32_t>& words);
+    static void appendInitializer(const LLVMBC::Value& value, const LLVMBC::Type& type, std::vector<std::uint32_t>& words, std::uint32_t& byteOffset);
     IrValue& constantWord(const Pointer& pointer, const Access& access, unsigned component = 0);
     void store(const LLVMBC::StoreInst& instruction, ScalarLowering& scalar);
     ShaderRecompiler::IrProgram& program;

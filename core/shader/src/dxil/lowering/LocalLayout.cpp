@@ -9,6 +9,7 @@ using AnyBox::Shader::Dxil::LocalLowering;
 LocalLowering::LocalLowering(IrProgram& program, IrBuilder& builder) : program(program), builder(builder) {}
 
 std::uint32_t LocalLowering::size(const LLVMBC::Type& type) {
+    if (type.getTypeID() == LLVMBC::Type::TypeID::HalfTyID || (type.isIntegerTy() && type.getIntegerBitWidth() == 16)) return 2;
     if (type.isIntegerTy() && type.getIntegerBitWidth() == 64) return 8;
     if (type.getTypeID() == LLVMBC::Type::TypeID::FloatTyID || (type.isIntegerTy() && type.getIntegerBitWidth() == 32)) return 4;
     if (type.getTypeID() != LLVMBC::Type::TypeID::ArrayTyID) throw std::runtime_error("DXIL local storage type is not implemented");
@@ -34,8 +35,10 @@ void LocalLowering::Prepare(const LLVMBC::Function& function) {
             auto base = static_cast<std::uint64_t>(program.Info().scratchDwords) * 4;
             if (elements == 0 || base > std::numeric_limits<std::uint32_t>::max() || elements > (std::numeric_limits<std::uint32_t>::max() - base) / elementBytes) throw std::runtime_error("DXIL local allocation exceeds the native address range");
             auto bytes = static_cast<std::uint32_t>(elements * elementBytes);
+            auto words = (static_cast<std::uint64_t>(bytes) + 3) / 4;
+            if (base + words * 4 > std::numeric_limits<std::uint32_t>::max()) throw std::runtime_error("DXIL padded local allocation exceeds the native address range");
             allocations.emplace(allocated, Allocation{static_cast<std::uint32_t>(base), bytes});
-            program.Info().scratchDwords += bytes / 4;
+            program.Info().scratchDwords += static_cast<std::uint32_t>(words);
         }
     }
     preparePrivateGlobals(function);

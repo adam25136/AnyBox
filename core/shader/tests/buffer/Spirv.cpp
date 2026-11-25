@@ -12,6 +12,7 @@
 
 void CheckNativeInvocations(AnyBox::Vulkan::Context& context);
 void CheckHalfCasts(AnyBox::Vulkan::Context& context);
+void CheckHalfMemory(AnyBox::Vulkan::Context& context);
 
 namespace BufferTests {
 void CheckGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::ComputeCompilation& shader, std::uint32_t expected);
@@ -117,6 +118,7 @@ void BufferTests::CheckSpirv() {
     CheckFloatMinMax(context);
     CheckFloatBits(context);
     CheckHalfCasts(context);
+    CheckHalfMemory(context);
     CheckReciprocalSqrt(context);
     CheckFloatMinMax3(context);
     CheckFloatMad(context);
