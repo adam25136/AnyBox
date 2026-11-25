@@ -1,4 +1,5 @@
 #include "WaveControl.hpp"
+#include "control/LocalExpression.hpp"
 #include <IntermediateRepresentation/IrProgram.hpp>
 #include <unordered_map>
 #include <stdexcept>
@@ -52,11 +53,13 @@ bool Arithmetic(IrOpcode opcode) {
 
 class Uniformity {
 public:
-    bool Check(const IrValue& input) {
-        const auto& value = *input.Resolve();
+    explicit Uniformity(const ShaderComputeInputInfo& inputInfo) : input(inputInfo) {}
+    bool Check(const IrValue& expression) {
+        const auto& value = *expression.Resolve();
         if (value.HasImmediate()) return true;
         if (auto found = known.find(&value); found != known.end()) return found->second;
         known.emplace(&value, false);
+        if (AnyBox::Shader::Control::IsWaveLocalUniform(value, input)) return known[&value] = true;
         auto opcode = value.Opcode();
         if (opcode == IrOpcode::GetUserData || opcode == IrOpcode::ReadFirstLane || opcode == IrOpcode::Ballot) return known[&value] = true;
         if (opcode == IrOpcode::GetBuiltin) {
@@ -69,12 +72,13 @@ public:
     }
 
 private:
+    const ShaderComputeInputInfo& input;
     std::unordered_map<const IrValue*, bool> known;
 };
 }
 
-void AnyBox::Shader::ValidateWave64Control(const ShaderRecompiler::IrProgram& program) {
-    Uniformity uniform;
+void AnyBox::Shader::ValidateWave64Control(const ShaderRecompiler::IrProgram& program, const ShaderComputeInputInfo& input) {
+    Uniformity uniform(input);
     for (const auto& info : program.Metadata().blockInfo) {
         if (info.terminator.kind != TerminatorKind::ConditionalBranch || info.terminator.condition != BranchCondition::ScalarInstruction) continue;
         if (!info.condition || !uniform.Check(*info.condition)) throw std::runtime_error("Wave64 per-invocation control flow on a 32-lane subgroup is not implemented");

@@ -22,7 +22,8 @@ inline ShaderRecompiler::IrProgram WaveControlKernel(unsigned mode) {
     if (mode == 2) source = &builder.Emit(IrOpcode::GetBuiltin, IrType::U32, {&builder.Constant(static_cast<unsigned>(StageInputKind::WorkgroupId)), &builder.Constant(0)});
     if (mode == 3) source = &builder.Emit(IrOpcode::ReadFirstLane, IrType::U32, {&index, &builder.ConstantBool(true)});
     if (mode == 5) source = &fixture.Memory(IrOpcode::LoadAddressU32, builder.Constant(0), 1);
-    auto& condition = mode < 2 ? builder.ConstantBool(mode != 0) : builder.INotEqual(builder.BitwiseAnd(*source, builder.Constant(mode == 2 ? 1 : mode == 3 ? 64 : 32)), builder.Constant(0));
+    if (mode >= 6) source = &builder.Emit(IrOpcode::GetBuiltin, IrType::U32, {&builder.Constant(static_cast<unsigned>(mode == 6 ? StageInputKind::LocalInvocationId : StageInputKind::LocalInvocationIndex)), &builder.Constant(0)});
+    auto& condition = mode < 2 ? builder.ConstantBool(mode != 0) : mode >= 6 ? builder.ULessThan(*source, builder.Constant(mode == 8 ? 63 : 64)) : builder.INotEqual(builder.BitwiseAnd(*source, builder.Constant(mode == 2 ? 1 : mode == 3 ? 64 : 32)), builder.Constant(0));
     builder.BranchConditional(condition, body, alternate);
     metadata[0].condition = &condition;
     metadata[0].terminator.kind = TerminatorKind::ConditionalBranch;
