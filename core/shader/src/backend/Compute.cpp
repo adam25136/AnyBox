@@ -1,6 +1,7 @@
 #include <anybox/shader/ComputeCompiler.hpp>
 #include "Validation.hpp"
 #include "WaveControl.hpp"
+#include "Spanned.hpp"
 #include "choices/Choice.hpp"
 #include "reductions/Optimize.hpp"
 #include <Optimization/ConstantFolder.hpp>
@@ -19,7 +20,8 @@ AnyBox::Shader::ComputeCompilation AnyBox::Shader::CompileCompute(ShaderRecompil
     if (program.Resources().stage != IrShaderStage::Unknown && program.Resources().stage != IrShaderStage::Compute) throw std::invalid_argument("Compute compilation received a different shader stage");
     if (input.waveSize != 32 && input.waveSize != 64) throw std::invalid_argument("Compute wave size is invalid");
     if (input.hostSubgroupSize != target.subgroupSize) throw std::invalid_argument("Compute input and target subgroup sizes do not match");
-    if (input.waveSize == 64 && input.hostSubgroupSize == 32) ValidateWave64Control(program, input);
+    auto spanned = UsesSpannedWave(input, target);
+    if (input.waveSize == 64 && input.hostSubgroupSize == 32 && !spanned) ValidateWave64Control(program, input);
     if (std::ranges::any_of(input.threadsNum, [](auto size) { return size == 0; })) throw std::invalid_argument("Compute workgroup dimensions must be nonzero");
     if (input.ldsSizeDwords > std::numeric_limits<std::uint32_t>::max() / 4) throw std::invalid_argument("Compute shared memory size overflows its byte representation");
     if (program.Resources().srtPlanComplete || program.Resources().resourceTrackingComplete || program.Metadata().shaderInfoComplete || program.Metadata().bindingLayoutComplete) throw std::logic_error("Compute compilation requires an unplanned program");
@@ -60,6 +62,7 @@ AnyBox::Shader::ComputeCompilation AnyBox::Shader::CompileCompute(ShaderRecompil
     ComputeCompilation result;
     result.bindings = std::move(static_cast<CompiledBindingLayout&>(allocation));
     result.code = SpirvEmitter{}.Emit(program, stage, result.bindings, target, &result.info);
+    if (spanned && (!result.info.fullSubgroups || result.info.anySubgroupSize != target.spannedAnySubgroup)) throw std::runtime_error("Spanned compute compilation produced an incompatible invocation layout");
     ValidateSpirv(result.code, target.vulkanVersion);
     if (OptimizeWaveReductions(result.code, input, target)) ValidateSpirv(result.code, target.vulkanVersion);
     return result;

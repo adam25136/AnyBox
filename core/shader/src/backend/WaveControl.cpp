@@ -4,12 +4,17 @@
 
 using namespace ShaderRecompiler;
 
-void AnyBox::Shader::ValidateWave64Control(const IrProgram& program, const ShaderComputeInputInfo& input) {
+bool AnyBox::Shader::HasWave64Divergence(const IrProgram& program, const ShaderComputeInputInfo& input) {
     Control::Uniformity uniform(program, input);
     for (const auto& info : program.Metadata().blockInfo) {
         if (info.terminator.kind != TerminatorKind::ConditionalBranch || info.terminator.condition != BranchCondition::ScalarInstruction) continue;
-        if (!info.condition || !uniform.Check(*info.condition)) throw std::runtime_error("Wave64 per-invocation control flow on a 32-lane subgroup is not implemented");
+        if (!info.condition || !uniform.Check(*info.condition)) return true;
     }
+    return false;
+}
+
+void AnyBox::Shader::ValidateWave64Control(const IrProgram& program, const ShaderComputeInputInfo& input) {
+    if (HasWave64Divergence(program, input)) throw std::runtime_error("Wave64 per-invocation control flow on a 32-lane subgroup is not implemented");
 }
 
 bool AnyBox::Shader::IsWaveUniform(const IrProgram& program, const IrValue& value, const ShaderComputeInputInfo& input) {

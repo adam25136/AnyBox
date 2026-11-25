@@ -36,7 +36,11 @@ AnyBox::Shader::ComputeArtifact AnyBox::Shader::Tools::CompileDxil(std::span<con
         physical.waveSize = input.hostSubgroupSize;
         program.SetWaveSize(physical.waveSize);
     }
-    auto result = Dxil::CompileCompute(program, physical, AuditTarget(), {0, 0, 0, 128});
+    auto target = AuditTarget();
+    auto threads = static_cast<std::uint64_t>(physical.threadsNum[0]) * physical.threadsNum[1] * physical.threadsNum[2];
+    target.spannedWaves = physical.waveSize == 64 && physical.hostSubgroupSize == 32 && threads == 64;
+    target.spannedAnySubgroup = target.spannedShuffleThroughMemory = target.spannedWaves;
+    auto result = Dxil::CompileCompute(program, physical, target, {0, 0, 0, 128});
     auto artifact = MakeArtifact(std::move(result), resources.GetBindings(), input, HashShader(code));
     if (independent) artifact.executionFlags |= NativeComputeInvocations;
     return artifact;

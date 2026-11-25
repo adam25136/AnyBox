@@ -11,6 +11,7 @@
 #include <spirv/unified1/spirv.hpp>
 
 void CheckNativeInvocations(AnyBox::Vulkan::Context& context);
+void CheckSpannedRuntime(AnyBox::Vulkan::Context& context);
 void CheckHalfCasts(AnyBox::Vulkan::Context& context);
 void CheckHalfMemory(AnyBox::Vulkan::Context& context);
 void CheckHalfExtrema(AnyBox::Vulkan::Context& context);
@@ -106,6 +107,7 @@ void BufferTests::CheckSpirv() {
     CheckBallot64(context);
     CheckWave64Control(context);
     CheckWave64Runtime(context);
+    CheckSpannedRuntime(context);
     CheckNativeInvocations(context);
     CheckConstants(context);
     CheckBitFields(context);

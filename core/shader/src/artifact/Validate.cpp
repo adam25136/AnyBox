@@ -14,6 +14,8 @@ void AnyBox::Shader::ArtifactFormat::Validate(const ComputeArtifact& artifact) {
         threads *= size;
     }
     if (threads > 1024 || artifact.sharedMemoryBytes % 4 != 0) throw std::invalid_argument("Shader artifact workgroup size or shared memory alignment is invalid");
+    auto spanned = artifact.executionFlags & SpannedComputeWave;
+    if (spanned != 0 && (spanned != SpannedComputeWave || artifact.waveSize != 64 || artifact.hostSubgroupSize != 32 || threads != 64 || (artifact.executionFlags & NativeComputeInvocations) != 0)) throw std::invalid_argument("Shader artifact spanned wave layout is incompatible");
     if (artifact.pushConstantOffset > 128 || artifact.pushConstantSize > 128 - artifact.pushConstantOffset || ((artifact.pushConstantOffset | artifact.pushConstantSize) & 3) != 0) throw std::invalid_argument("Shader artifact push constant range is invalid");
     if (artifact.pushDataStart != UINT32_MAX && artifact.pushDataStart >= 32) throw std::invalid_argument("Shader artifact push data base is invalid");
     if (artifact.stencilReference != UINT32_MAX && artifact.stencilReference >= 32) throw std::invalid_argument("Shader artifact stencil data base is invalid");

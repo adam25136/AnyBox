@@ -40,6 +40,7 @@ target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/ActiveBallot.cp
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveControl.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveLocalProof.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveRuntime.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/SpannedRuntime.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/NativeInvocations.cpp tests/buffer/InvocationProof.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Wave.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveCount.cpp)
