@@ -4,11 +4,13 @@
 #include <anybox/ExceptionTest.hpp>
 #include <cstring>
 #include <stdexcept>
+#include <span>
 #include <vector>
 
-namespace AnyBox::Graphics { class Resource; }
+namespace AnyBox::Graphics { class Resource; class RootSignature; }
 
 namespace AnyBox::Graphics::Tests {
+void CheckPipelineStreams(Device* device, RootSignature* root, std::span<const std::byte> code);
 void CheckComputeRoots(Device* device);
 void CheckComputeInline(Device* device);
 void CheckPreparedPipeline(Device* device);

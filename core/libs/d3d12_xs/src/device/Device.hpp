@@ -86,6 +86,7 @@ public:
     static HRESULT CreateCommandList(Device* self, std::uint32_t nodeMask, D3D12_COMMAND_LIST_TYPE type, void* allocator, void* initialState, const Guid& interfaceId, void** list);
     static HRESULT CreateCommandListX(Device* self, const XboxListDescription* description, void* allocator, void* initialState, const Guid& interfaceId, void** list);
     static HRESULT CreateRootSignature(Device* self, std::uint32_t nodeMask, const void* data, std::size_t size, const Guid& interfaceId, void** signature);
+    static HRESULT CreatePipelineStateX(Device* self, const D3D12_PIPELINE_STATE_STREAM_DESC* description, const Guid& interfaceId, void** pipeline);
     static HRESULT CreateComputePipelineStateX(Device* self, const D3D12_COMPUTE_PIPELINE_STATE_DESC* description, std::uint32_t extensionCount, const void* extensions, const Guid& interfaceId, void** pipeline);
     static HRESULT CreateDescriptorHeap(Device* self, const D3D12_DESCRIPTOR_HEAP_DESC* description, const Guid& interfaceId, void** heap);
     static void CreateShaderResourceView(Device* self, void* resource, const D3D12_SHADER_RESOURCE_VIEW_DESC* description, std::uint64_t destination);
