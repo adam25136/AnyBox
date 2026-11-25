@@ -1,6 +1,7 @@
 #include "NativeAudit.hpp"
 #include <anybox/graphics/container/Native.hpp>
 #include <anybox/graphics/container/NativeStage.hpp>
+#include <anybox/graphics/container/NativeInterface.hpp>
 #include <anybox/shader/Native.hpp>
 #include <RdnaDecoder/RdnaInstructionDecoder.hpp>
 #include <cstring>
@@ -22,6 +23,18 @@ std::string AnyBox::Shader::Tools::InspectNativeCode(std::span<const std::byte> 
         }
         auto state = Graphics::Container::ReadNativeStageState(program);
         output << "hardware_stage=" << static_cast<unsigned>(state.stage) << " float_mode=" << state.floatControl << " dx10_clamp=" << state.dx10Clamp << " ieee=" << state.ieeeMode << '\n';
+        if (state.stage == Graphics::Container::NativeHardwareStage::Pixel) {
+            auto inputs = Graphics::Container::ReadNativePixelInputs(program);
+            output << "pixel_inputs=" << inputs.count << " input_enable=" << inputs.inputEnable << '\n';
+            for (std::uint32_t attribute = 0; attribute < inputs.count; ++attribute) {
+                const auto& input = inputs.attributes[attribute];
+                output << "attribute=" << attribute << " kind=" << unsigned(input.kind) << " register=" << unsigned(input.registerIndex) << " mask=" << unsigned(input.componentMask) << " interpolation=" << unsigned(input.interpolation) << '\n';
+            }
+        } else if (state.stage == Graphics::Container::NativeHardwareStage::Vertex) {
+            auto outputs = Graphics::Container::ReadNativeVertexOutputs(program);
+            output << "vertex_parameters=" << outputs.count << '\n';
+            for (std::uint32_t parameter = 0; parameter < outputs.count; ++parameter) output << "parameter=" << parameter << " kind=" << unsigned(outputs.parameters[parameter].kind) << " register=" << unsigned(outputs.parameters[parameter].registerIndex) << '\n';
+        }
         for (const auto& instruction : frontend.GetDecoded().instructions) {
             output << ShaderRecompiler::RdnaInstructionToString(instruction) << " semantic=" << static_cast<std::uint32_t>(instruction.op);
             output << " offset=" << instruction.memoryOffset << " words=" << instruction.dataDwordCount;
