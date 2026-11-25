@@ -3,7 +3,7 @@
 #include "AtomicKernel.hpp"
 
 namespace BufferTests {
-inline ShaderRecompiler::IrProgram BallotKernel(unsigned waveSize, std::uint64_t predicateMask, std::uint64_t executionMask = UINT64_MAX) {
+inline ShaderRecompiler::IrProgram BallotKernel(unsigned waveSize, std::uint64_t predicateMask, std::uint64_t executionMask = UINT64_MAX, bool dxil = false) {
     using namespace ShaderRecompiler;
     AtomicKernel fixture;
     auto& context = fixture.source.Context();
@@ -11,7 +11,8 @@ inline ShaderRecompiler::IrProgram BallotKernel(unsigned waveSize, std::uint64_t
     auto& program = fixture.program;
     program.SetWaveSize(waveSize);
     auto& index = fixture.GlobalIndex();
-    auto& lane = builder.BitwiseAnd(index, builder.Constant(63));
+    auto& local = builder.Emit(IrOpcode::GetBuiltin, IrType::U32, {&builder.Constant(static_cast<unsigned>(StageInputKind::LocalInvocationIndex)), &builder.Constant(0)});
+    auto& lane = builder.BitwiseAnd(local, builder.Constant(63));
     auto& upper = builder.ULessThan(lane, builder.Constant(32));
     auto& shift = builder.BitwiseAnd(lane, builder.Constant(31));
     auto condition = [&](std::uint64_t mask) -> IrValue& {
@@ -40,22 +41,24 @@ inline ShaderRecompiler::IrProgram BallotKernel(unsigned waveSize, std::uint64_t
     }
     builder.SetInsertionPoint(*active);
     auto* word = LLVMBC::Type::getInt32Ty(context);
-    auto* resultType = LLVMBC::StructType::get(context, LLVMBC::Vector<LLVMBC::Type*>{word, word}, "ballot");
-    auto* argument = context.construct<LLVMBC::Argument>(word, 0, false);
+    auto* resultType = LLVMBC::StructType::get(context, LLVMBC::Vector<LLVMBC::Type*>(dxil ? 4 : 2, word), "ballot");
+    auto* predicateType = dxil ? LLVMBC::Type::getInt1Ty(context) : word;
+    auto* argument = context.construct<LLVMBC::Argument>(predicateType, 0, false);
     auto& nonzero = builder.Select(predicate, builder.ShiftLeftLogical(builder.Constant(1), shift), builder.Constant(0));
-    fixture.scalar.Bind(*argument, nonzero);
-    fixture.source.Module().add_value_name(25, "xbox.Ballot64");
-    auto* signature = context.construct<LLVMBC::FunctionType>(context, resultType, LLVMBC::Vector<LLVMBC::Type*>{word, word});
+    fixture.scalar.Bind(*argument, dxil ? predicate : nonzero);
+    fixture.source.Module().add_value_name(25, dxil ? "dx.op.waveActiveBallot" : "xbox.Ballot64");
+    auto* signature = context.construct<LLVMBC::FunctionType>(context, resultType, LLVMBC::Vector<LLVMBC::Type*>{word, predicateType});
     auto* function = context.construct<LLVMBC::Function>(signature, 25, fixture.source.Module());
-    auto* call = context.construct<LLVMBC::CallInst>(signature, function, LLVMBC::Vector<LLVMBC::Value*>{LLVMBC::ConstantInt::get(word, 25), argument});
-    auto write = [&](IrValue& low, IrValue& high) {
-        auto& offset = builder.ShiftLeftLogical(index, builder.Constant(3));
-        fixture.Memory(IrOpcode::StoreAddressU32, offset, 2, &low);
-        fixture.Memory(IrOpcode::StoreAddressU32, builder.IAdd(offset, builder.Constant(4)), 2, &high);
+    auto* call = context.construct<LLVMBC::CallInst>(signature, function, LLVMBC::Vector<LLVMBC::Value*>{LLVMBC::ConstantInt::get(word, dxil ? 116 : 25), argument});
+    auto write = [&](bool evaluated) {
+        auto& offset = builder.ShiftLeftLogical(index, builder.Constant(dxil ? 4 : 3));
+        for (unsigned component = 0; component < (dxil ? 4u : 2u); ++component) {
+            auto* extraction = context.construct<LLVMBC::ExtractValueInst>(word, call, LLVMBC::Vector<unsigned>{component});
+            auto& value = evaluated ? fixture.scalar.Get(*extraction) : builder.Constant(UINT32_MAX);
+            fixture.Memory(IrOpcode::StoreAddressU32, builder.IAdd(offset, builder.Constant(component * 4)), 2, &value);
+        }
     };
-    auto* low = context.construct<LLVMBC::ExtractValueInst>(word, call, LLVMBC::Vector<unsigned>{0});
-    auto* high = context.construct<LLVMBC::ExtractValueInst>(word, call, LLVMBC::Vector<unsigned>{1});
-    write(fixture.scalar.Get(*low), fixture.scalar.Get(*high));
+    write(true);
     if (merge) {
         auto jump = [&](IrBlock& block) {
             builder.Branch(*merge);
@@ -65,7 +68,7 @@ inline ShaderRecompiler::IrProgram BallotKernel(unsigned waveSize, std::uint64_t
         };
         jump(*active);
         builder.SetInsertionPoint(*inactive);
-        write(builder.Constant(UINT32_MAX), builder.Constant(UINT32_MAX));
+        write(false);
         jump(*inactive);
         builder.SetInsertionPoint(*merge);
         program.Metadata().blockInfo[merge->Id()].terminator.kind = TerminatorKind::Return;

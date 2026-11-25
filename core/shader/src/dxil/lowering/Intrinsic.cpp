@@ -47,7 +47,8 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "xbox.BFI") return LowerBitSelect(instruction, *this, builder);
     if (identifier == "xbox.MakeUniform.i32") return LowerMakeUniform(instruction, *this, builder, program, 32);
     if (identifier == "xbox.MakeUniform.i64") return LowerMakeUniform(instruction, *this, builder, program, 64);
-    if (identifier == "xbox.Ballot64") return LowerBallot64(instruction, *this, builder, program);
+    if (identifier == "xbox.Ballot64") return LowerBallot(instruction, *this, builder, program, false);
+    if (identifier == "dx.op.waveActiveBallot") return LowerBallot(instruction, *this, builder, program, true);
     if (identifier == "xbox.LaneSwizzle.i32") return LowerLaneSwizzle(instruction, *this, builder, program);
     if (identifier == "xbox.V_CNDMASK_B32") return LowerConditionalMask(instruction, *this, builder, program);
     if (identifier == "xbox.ReadLane.i32") return LowerReadLane(instruction, *this, builder, program);

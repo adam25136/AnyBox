@@ -4,6 +4,8 @@
 #include "Fixtures.hpp"
 #include <algorithm>
 
+void CheckActiveBallot(AnyBox::Vulkan::Context& context);
+
 namespace {
 void Invalid() {
     BufferTests::FloatFixture fixture;
@@ -73,6 +75,7 @@ void CheckPartial(AnyBox::Vulkan::Context& context, unsigned threads) {
 namespace BufferTests {
 void CheckBallot64(AnyBox::Vulkan::Context& context) {
     Invalid();
+    CheckActiveBallot(context);
     std::vector<std::uint64_t> masks{0, UINT64_MAX, 0xA55A8420F000000F};
     for (unsigned lane = 0; lane < 64; ++lane) masks.push_back(std::uint64_t{1} << lane);
     for (unsigned wave : {32u, 64u}) {
