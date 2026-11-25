@@ -1,4 +1,5 @@
 #include "Offline.hpp"
+#include <anybox/shader/Requirements.hpp>
 #include <filesystem>
 #include <fstream>
 
@@ -19,5 +20,8 @@ AnyBox::Shader::ComputeArtifact AnyBox::Graphics::LoadPreparedCompute(std::span<
     std::vector<std::byte> bytes(static_cast<std::size_t>(size));
     input.seekg(0);
     if (!input.read(reinterpret_cast<char*>(bytes.data()), size)) throw std::runtime_error("Prepared compute shader could not be read completely");
-    return Shader::DecodeComputeArtifact(bytes, digest);
+    auto artifact = Shader::DecodeComputeArtifact(bytes, digest);
+    auto required = Shader::GetComputeWaveSize(code);
+    if (required && artifact.waveSize != *required) throw std::runtime_error("Prepared compute shader wave size does not match its source");
+    return artifact;
 }

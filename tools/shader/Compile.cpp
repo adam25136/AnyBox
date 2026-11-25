@@ -26,7 +26,6 @@ AnyBox::Shader::ComputeArtifact AnyBox::Shader::Tools::CompileDxil(std::span<con
     if (wave && entry.info.preferredWaveSize && *wave != entry.info.preferredWaveSize) throw std::runtime_error("Xbox and DXIL wave size requirements disagree");
     input.waveSize = wave.value_or(entry.info.preferredWaveSize ? entry.info.preferredWaveSize : 32);
     input.hostSubgroupSize = 32;
-    if (input.waveSize != input.hostSubgroupSize) throw std::runtime_error("Offline compute wave size adaptation is not implemented");
     program.SetWaveSize(input.waveSize);
     Dxil::FunctionLowering(program, resources, bindings).Run(*entry.function);
     input.ldsSizeDwords = program.Info().sharedMemoryBytes / 4;

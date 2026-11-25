@@ -32,10 +32,17 @@ void CheckWaveMismatch(AnyBox::Graphics::Device* device) {
     bool rejected = false;
     try { create(device, &description, 0, nullptr, PipelineStateId, &output); }
     catch (const std::runtime_error& error) {
-        if (std::string_view(error.what()) != "Xbox shader wave size requires explicit subgroup control on this adapter") throw;
+        if (std::string_view(error.what()) != "Prepared compute shader wave size does not match its source") throw;
         rejected = true;
     }
     Require(rejected && !output, "Prepared shader accepted a source with a different wave size");
+    artifact.waveSize = 64;
+    artifact.code = AnyBox::Vulkan::Tests::CompileCompute("#version 450\nlayout(local_size_x=32) in; void main() {}\n");
+    cache.Save(artifact);
+    Require(create(device, &description, 0, nullptr, PipelineStateId, &output) == S_OK && output, "Prepared wave64 shader did not create a paired-wave pipeline");
+    auto* pipeline = static_cast<PipelineState*>(output);
+    Require(pipeline->GetOffline() != nullptr, "Prepared wave64 shader used an incompatible native pipeline");
+    Require(Method<decltype(&PipelineState::Release)>(pipeline, 2)(pipeline) == 0, "Prepared wave64 pipeline retained its final reference");
 }
 }
 

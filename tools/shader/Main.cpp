@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
             auto artifact = std::string_view(argv[1]) == "--compile" ? AnyBox::Shader::Tools::CompileDxil(data) : AnyBox::Shader::DecodeComputeArtifact(AnyBox::Shader::Tools::ReadInput(argv[3]), AnyBox::Shader::HashShader(data));
             if (std::string_view(argv[1]) == "--compile") AnyBox::Shader::Tools::WriteOutput(argv[3], AnyBox::Shader::EncodeComputeArtifact(artifact));
             if (std::string_view(argv[1]) == "--check-gpu") AnyBox::Shader::Tools::CheckArtifactGpu(artifact);
-            std::cout << "source=" << AnyBox::Shader::DigestName(artifact.sourceHash) << " words=" << artifact.code.size() << " buffers=" << artifact.buffers.size() << " arguments=" << artifact.userRegisters.size() << " push_bytes=" << artifact.pushConstantSize << '\n';
+            std::cout << "source=" << AnyBox::Shader::DigestName(artifact.sourceHash) << " words=" << artifact.code.size() << " buffers=" << artifact.buffers.size() << " arguments=" << artifact.userRegisters.size() << " push_bytes=" << artifact.pushConstantSize << " wave=" << artifact.waveSize << " subgroup=" << artifact.hostSubgroupSize << '\n';
         } else if (std::string_view(argv[1]) == "--native-audit") {
             auto words = AnyBox::Shader::Tools::AuditNative(data);
             std::cout << "words=" << words << '\n';
