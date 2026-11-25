@@ -9,6 +9,7 @@ void CheckDxil();
 void CheckCompilerOptions();
 void CheckNative();
 void CheckNativeComputeState();
+void CheckNativeStageState();
 void CheckNativeBindings();
 void CheckRootSignatureLayout();
 void CheckEmbeddedDxbc();
@@ -83,6 +84,7 @@ int main() {
         CheckCompilerOptions();
         CheckNative();
         CheckNativeComputeState();
+        CheckNativeStageState();
         CheckNativeBindings();
         CheckRootSignatureLayout();
         CheckEmbeddedDxbc();

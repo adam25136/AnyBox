@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
         if (argc == 2 && std::string_view(argv[1]) == "--audit-stream") return AnyBox::Shader::Tools::AuditStream();
         bool nativeCompile = argc == 4 && std::string_view(argv[1]) == "--compile-native";
         bool artifactCommand = nativeCompile || (argc == 4 && (std::string_view(argv[1]) == "--compile" || std::string_view(argv[1]) == "--verify" || std::string_view(argv[1]) == "--check-gpu"));
-        if (!artifactCommand && (argc != 3 || (std::string_view(argv[1]) != "--inspect" && std::string_view(argv[1]) != "--bindings" && std::string_view(argv[1]) != "--compute" && std::string_view(argv[1]) != "--native-info" && std::string_view(argv[1]) != "--native-ir" && std::string_view(argv[1]) != "--native-audit"))) throw std::invalid_argument("Usage: anybox_shader <--inspect|--bindings|--compute|--native-info|--native-ir|--native-audit> <shader.dxbc> | <--compile|--compile-native|--verify|--check-gpu> <shader.dxbc> <shader.abxc> | --prepare-compute <binary> <directory> | --audit-stream");
+        if (!artifactCommand && (argc != 3 || (std::string_view(argv[1]) != "--inspect" && std::string_view(argv[1]) != "--bindings" && std::string_view(argv[1]) != "--compute" && std::string_view(argv[1]) != "--native-code" && std::string_view(argv[1]) != "--native-info" && std::string_view(argv[1]) != "--native-ir" && std::string_view(argv[1]) != "--native-audit"))) throw std::invalid_argument("Usage: anybox_shader <--inspect|--bindings|--compute|--native-code|--native-info|--native-ir|--native-audit> <shader.dxbc> | <--compile|--compile-native|--verify|--check-gpu> <shader.dxbc> <shader.abxc> | --prepare-compute <binary> <directory> | --audit-stream");
         auto data = AnyBox::Shader::Tools::ReadInput(argv[2]);
         if (artifactCommand) {
             auto artifact = nativeCompile ? AnyBox::Shader::Tools::CompileNative(data) : std::string_view(argv[1]) == "--compile" ? AnyBox::Shader::Tools::CompileDxil(data) : AnyBox::Shader::DecodeComputeArtifact(AnyBox::Shader::Tools::ReadInput(argv[3]), AnyBox::Shader::HashShader(data));
@@ -29,6 +29,8 @@ int main(int argc, char** argv) {
         } else if (std::string_view(argv[1]) == "--native-audit") {
             auto words = AnyBox::Shader::Tools::AuditNative(data);
             std::cout << "words=" << words << '\n';
+        } else if (std::string_view(argv[1]) == "--native-code") {
+            std::cout << AnyBox::Shader::Tools::InspectNativeCode(data);
         } else if (std::string_view(argv[1]) == "--native-info") {
             std::cout << AnyBox::Shader::Tools::InspectNative(data);
         } else if (std::string_view(argv[1]) == "--native-ir") {
