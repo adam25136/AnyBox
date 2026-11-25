@@ -36,6 +36,8 @@ private:
     IrValue& globalStore(const LLVMBC::CallInst& instruction, unsigned words);
     IrValue& globalStoreData(const LLVMBC::Value& value, unsigned words);
     IrValue& globalFloatAtomic(const LLVMBC::CallInst& instruction, bool maximum);
+    IrValue& globalIntegerAtomic(const LLVMBC::CallInst& instruction, bool subtract);
+    IrValue& globalAtomic(ShaderRecompiler::IrOpcode operation, IrValue& address, IrValue& value);
     IrValue& thread(const LLVMBC::CallInst& instruction, unsigned opcode);
     IrValue& waveFirst(const LLVMBC::CallInst& instruction);
     IrValue& waveBuiltin(const LLVMBC::CallInst& instruction, unsigned opcode);

@@ -29,6 +29,7 @@ void CheckPredication(AnyBox::Vulkan::Context& context);
 void CheckUniformLoop(AnyBox::Vulkan::Context& context);
 void CheckBitCount64(AnyBox::Vulkan::Context& context);
 void CheckMaskBitCount64(AnyBox::Vulkan::Context& context);
+void CheckGlobalIntegerAtomic(AnyBox::Vulkan::Context& context);
 void CheckBallot64(AnyBox::Vulkan::Context& context);
 void CheckWave64Control(AnyBox::Vulkan::Context& context);
 void CheckWave64Runtime(AnyBox::Vulkan::Context& context);
@@ -94,6 +95,7 @@ void BufferTests::CheckSpirv() {
     CheckUniformLoop(context);
     CheckBitCount64(context);
     CheckMaskBitCount64(context);
+    CheckGlobalIntegerAtomic(context);
     CheckBallot64(context);
     CheckWave64Control(context);
     CheckWave64Runtime(context);

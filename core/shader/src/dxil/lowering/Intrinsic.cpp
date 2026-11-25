@@ -62,6 +62,8 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "dx.op.wavePrefixOp.i32") return waveInteger(instruction, true);
     if (identifier == "xbox.global_atomic_fmin") return globalFloatAtomic(instruction, false);
     if (identifier == "xbox.global_atomic_fmax") return globalFloatAtomic(instruction, true);
+    if (identifier == "xbox.global_atomic_add") return globalIntegerAtomic(instruction, false);
+    if (identifier == "xbox.global_atomic_sub") return globalIntegerAtomic(instruction, true);
     if (identifier == "dx.op.threadId.i32") return thread(instruction, 93);
     if (identifier == "dx.op.groupId.i32") return thread(instruction, 94);
     if (identifier == "dx.op.threadIdInGroup.i32") return thread(instruction, 95);
