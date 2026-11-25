@@ -1,5 +1,6 @@
 #include <anybox/shader/ComputeCompiler.hpp>
 #include "Validation.hpp"
+#include "WaveControl.hpp"
 #include "choices/Choice.hpp"
 #include "reductions/Optimize.hpp"
 #include <Optimization/ConstantFolder.hpp>
@@ -18,11 +19,7 @@ AnyBox::Shader::ComputeCompilation AnyBox::Shader::CompileCompute(ShaderRecompil
     if (program.Resources().stage != IrShaderStage::Unknown && program.Resources().stage != IrShaderStage::Compute) throw std::invalid_argument("Compute compilation received a different shader stage");
     if (input.waveSize != 32 && input.waveSize != 64) throw std::invalid_argument("Compute wave size is invalid");
     if (input.hostSubgroupSize != target.subgroupSize) throw std::invalid_argument("Compute input and target subgroup sizes do not match");
-    if (input.waveSize == 64 && input.hostSubgroupSize == 32) {
-        for (const auto& info : program.Metadata().blockInfo) {
-            if (info.terminator.kind == TerminatorKind::ConditionalBranch && info.terminator.condition == BranchCondition::ScalarInstruction) throw std::runtime_error("Wave64 per-invocation control flow on a 32-lane subgroup is not implemented");
-        }
-    }
+    if (input.waveSize == 64 && input.hostSubgroupSize == 32) ValidateWave64Control(program);
     if (std::ranges::any_of(input.threadsNum, [](auto size) { return size == 0; })) throw std::invalid_argument("Compute workgroup dimensions must be nonzero");
     if (input.ldsSizeDwords > std::numeric_limits<std::uint32_t>::max() / 4) throw std::invalid_argument("Compute shared memory size overflows its byte representation");
     if (program.Resources().srtPlanComplete || program.Resources().resourceTrackingComplete || program.Metadata().shaderInfoComplete || program.Metadata().bindingLayoutComplete) throw std::logic_error("Compute compilation requires an unplanned program");
