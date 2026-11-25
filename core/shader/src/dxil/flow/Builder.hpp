@@ -28,6 +28,7 @@ private:
     IrValue& entry(const IrValue& variable, State& state);
     IrValue& exit(const IrValue& variable, State& state);
     IrValue& phi(const IrValue& variable, State& state);
+    IrValue& undefinedEntry(const IrValue& variable, State& state);
     ShaderRecompiler::IrProgram& source;
     Plan plan;
     ShaderRecompiler::IrProgram output;

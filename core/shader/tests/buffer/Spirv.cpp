@@ -18,6 +18,7 @@ void CheckBufferBarriers(AnyBox::Vulkan::Context& context);
 void CheckAddressLoads(AnyBox::Vulkan::Context& context);
 void CheckUnsignedExtrema3(AnyBox::Vulkan::Context& context);
 void CheckIntegerMinMax(AnyBox::Vulkan::Context& context);
+void CheckStructuredPhi(AnyBox::Vulkan::Context& context);
 }
 void CheckRuntimeComputeMemory(AnyBox::Vulkan::Context& context);
 
@@ -69,6 +70,7 @@ void BufferTests::CheckSpirv() {
     CheckAddressLoads(context);
     CheckUnsignedExtrema3(context);
     CheckIntegerMinMax(context);
+    CheckStructuredPhi(context);
     CheckConstants(context);
     CheckBitFields(context);
     CheckUnaryBitsGpu(context);

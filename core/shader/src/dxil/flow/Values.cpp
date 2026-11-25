@@ -15,7 +15,7 @@ IrValue& Builder::phi(const IrValue& variable, State& state) {
 
 IrValue& Builder::entry(const IrValue& variable, State& state) {
     if (auto found = state.entries.find(&variable); found != state.entries.end()) return *found->second;
-    if (state.block->Predecessors().empty()) throw std::runtime_error("DXIL structured SSA reads a value before its definition");
+    if (state.block->Predecessors().empty()) return undefinedEntry(variable, state);
     auto& value = phi(variable, state);
     IrValue* result = &value;
     if (variable.Type() == IrType::F32) {
