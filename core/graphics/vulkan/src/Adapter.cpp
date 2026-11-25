@@ -26,5 +26,5 @@ void AnyBox::Vulkan::Context::findAdapter(const AdapterSelection& selection) {
         if (physicalDevice) throw std::runtime_error("Multiple Vulkan adapters have the requested Windows LUID");
         physicalDevice = candidate;
     }
-    if (!physicalDevice) throw std::out_of_range("No Vulkan adapter has the requested Windows LUID");
+    if (!physicalDevice) throw AdapterNotFound("No Vulkan adapter has the requested Windows LUID");
 }
