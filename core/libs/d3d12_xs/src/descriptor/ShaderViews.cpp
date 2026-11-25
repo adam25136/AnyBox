@@ -1,6 +1,7 @@
 #include "../device/Device.hpp"
 #include "../resource/Resource.hpp"
 #include "RawBuffer.hpp"
+#include "TypedBuffer.hpp"
 #include "TextureViews.hpp"
 #include <anybox/Unimplemented.hpp>
 
@@ -15,10 +16,13 @@ void AnyBox::Graphics::Device::CreateShaderResourceView(Device* self, void* reso
             return;
         }
         if (!description) ANYBOX_NOT_IMPLEMENTED();
-        if (description->ViewDimension != D3D12_SRV_DIMENSION_BUFFER || description->Format != DXGI_FORMAT_R32_TYPELESS || description->Buffer.Flags != D3D12_BUFFER_SRV_FLAG_RAW) ANYBOX_NOT_IMPLEMENTED();
+        if (description->ViewDimension != D3D12_SRV_DIMENSION_BUFFER) ANYBOX_NOT_IMPLEMENTED();
         if (description->Buffer.StructureByteStride != 0) throw std::invalid_argument("Xbox raw shader view cannot have a structure stride");
         if ((metadata.Flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE) != 0) throw std::invalid_argument("Xbox resource does not allow shader resource views");
-        auto words = EncodeRawBuffer(Resource::GetGPUVirtualAddress(object), metadata.Width, description->Buffer.FirstElement, description->Buffer.NumElements, description->Shader4ComponentMapping);
+        std::array<std::uint32_t, 8> words;
+        if (description->Buffer.Flags == D3D12_BUFFER_SRV_FLAG_NONE) words = EncodeTypedBuffer(Resource::GetGPUVirtualAddress(object), metadata.Width, *description);
+        else if (description->Format == DXGI_FORMAT_R32_TYPELESS && description->Buffer.Flags == D3D12_BUFFER_SRV_FLAG_RAW) words = EncodeRawBuffer(Resource::GetGPUVirtualAddress(object), metadata.Width, description->Buffer.FirstElement, description->Buffer.NumElements, description->Shader4ComponentMapping);
+        else ANYBOX_NOT_IMPLEMENTED();
         std::memcpy(output, words.data(), sizeof(words));
         return;
     }

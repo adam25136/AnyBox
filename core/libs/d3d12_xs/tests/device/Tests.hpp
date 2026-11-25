@@ -69,6 +69,7 @@ void CheckNullShaderViews(Device* device);
 void CheckNullUnorderedViews(Device* device);
 void CheckConstantViews(Device* device);
 void CheckRawShaderViews(Device* device);
+void CheckTypedShaderViews(Device* device);
 void CheckVulkanTimeline(Device* device);
 void CheckGpuQueue(Device* device);
 void CheckGpuQueueSlots(Device* device);
