@@ -25,6 +25,7 @@ void CheckMakeUniform(AnyBox::Vulkan::Context& context);
 void CheckLaneSwizzle(AnyBox::Vulkan::Context& context);
 void CheckConditionalMask(AnyBox::Vulkan::Context& context);
 void CheckReadLane(AnyBox::Vulkan::Context& context);
+void CheckPredication(AnyBox::Vulkan::Context& context);
 void CheckBallot64(AnyBox::Vulkan::Context& context);
 void CheckWave64Control(AnyBox::Vulkan::Context& context);
 void CheckWave64Runtime(AnyBox::Vulkan::Context& context);
@@ -86,6 +87,7 @@ void BufferTests::CheckSpirv() {
     CheckLaneSwizzle(context);
     CheckConditionalMask(context);
     CheckReadLane(context);
+    CheckPredication(context);
     CheckBallot64(context);
     CheckWave64Control(context);
     CheckWave64Runtime(context);
