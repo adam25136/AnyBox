@@ -2,7 +2,10 @@
 #include "Fixtures.hpp"
 #include "../../src/dxil/flow/ActiveLane.hpp"
 
+void CheckActiveLane64Proof();
+
 void CheckActiveLaneProof() {
+    CheckActiveLane64Proof();
     using namespace ShaderRecompiler;
     using AnyBox::Shader::Dxil::Flow::ReadsActiveLane;
     for (bool prefix : {false, true}) {
