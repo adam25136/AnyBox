@@ -23,6 +23,7 @@ std::uint64_t AnyBox::Graphics::Resource::GetGPUVirtualAddress(Resource* self) n
 HRESULT AnyBox::Graphics::Resource::Map(Resource* self, std::uint32_t subresource, const D3D12_RANGE* range, void** data) {
     if (data) *data = nullptr;
     if (!self->buffer) throw std::runtime_error("Default heap textures cannot be mapped");
+    if (self->bufferBacking->memory->properties && self->bufferBacking->memory->properties->Type == D3D12_HEAP_TYPE_DEFAULT) throw std::runtime_error("Default heap committed buffers cannot be mapped");
     if (subresource != 0 || (range && (range->Begin > range->End || range->End > self->description.Width))) throw std::invalid_argument("Placed buffer map range is invalid");
     if (data) *data = self->buffer->Map().data();
     return S_OK;
@@ -30,5 +31,6 @@ HRESULT AnyBox::Graphics::Resource::Map(Resource* self, std::uint32_t subresourc
 
 void AnyBox::Graphics::Resource::Unmap(Resource* self, std::uint32_t subresource, const D3D12_RANGE* range) {
     if (!self->buffer) throw std::runtime_error("Default heap textures cannot be unmapped");
+    if (self->bufferBacking->memory->properties && self->bufferBacking->memory->properties->Type == D3D12_HEAP_TYPE_DEFAULT) throw std::runtime_error("Default heap committed buffers cannot be unmapped");
     if (subresource != 0 || (range && (range->Begin > range->End || range->End > self->description.Width))) throw std::invalid_argument("Placed buffer unmap range is invalid");
 }

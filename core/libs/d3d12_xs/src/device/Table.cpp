@@ -33,6 +33,7 @@ AnyBox::Graphics::DeviceTable MakeTable(std::index_sequence<TSlots...>) {
     result[20] = MethodAddress(&Device::CreateRenderTargetView);
     result[25] = MethodAddress(&Device::GetResourceAllocationInfo);
     result[26] = MethodAddress(&Device::GetCustomHeapProperties);
+    result[27] = MethodAddress(&Device::CreateCommittedResource);
     result[36] = MethodAddress(&Device::CreateFence);
     result[37] = MethodAddress(&Device::GetDeviceRemovedReason);
     result[39] = MethodAddress(&Device::CreateQueryHeap);

@@ -1,0 +1,50 @@
+#include "CommittedBuffers.hpp"
+
+void AnyBox::Graphics::Tests::CheckCommittedBufferInvalid(Device* device) {
+    auto create = Method<decltype(&Device::CreateCommittedResource)>(device, 27);
+    auto properties = CommittedProperties(D3D12_HEAP_TYPE_READBACK);
+    auto description = CommittedDescription(8);
+    auto state = D3D12_RESOURCE_STATE_COPY_DEST;
+    auto flags = D3D12_HEAP_FLAG_NONE;
+    void* output = device;
+    auto invoke = [&] { return create(device, &properties, flags, &description, state, nullptr, ResourceId, &output); };
+    state = D3D12_RESOURCE_STATE_COMMON;
+    Reject<std::invalid_argument>(invoke);
+    Require(!output, "Rejected committed buffer retained a stale pointer");
+    state = D3D12_RESOURCE_STATE_COPY_DEST;
+    description.Width = 0;
+    Reject<std::invalid_argument>(invoke);
+    description.Width = 8;
+    properties.CreationNodeMask = 2;
+    Reject<std::invalid_argument>(invoke);
+    properties.CreationNodeMask = 1;
+    properties.Type = D3D12_HEAP_TYPE_UPLOAD;
+    Reject<std::invalid_argument>(invoke);
+    state = D3D12_RESOURCE_STATE_GENERIC_READ;
+    description.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    Reject<std::invalid_argument>(invoke);
+    properties.Type = D3D12_HEAP_TYPE_DEFAULT;
+    description.Flags = D3D12_RESOURCE_FLAG_NONE;
+    state = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    Reject<std::invalid_argument>(invoke);
+    description.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    Require(invoke() == S_OK && output, "Committed unordered access buffer creation failed");
+    OwnedCommittedBuffer unordered(static_cast<Resource*>(output));
+    description.Flags = D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+    state = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+    Reject<std::invalid_argument>(invoke);
+    description.Flags = D3D12_RESOURCE_FLAG_NONE;
+    state = static_cast<D3D12_RESOURCE_STATES>(D3D12_RESOURCE_STATE_COPY_DEST | D3D12_RESOURCE_STATE_COPY_SOURCE);
+    Reject<std::invalid_argument>(invoke);
+    state = D3D12_RESOURCE_STATE_COMMON;
+    flags = D3D12_HEAP_FLAG_SHARED;
+    Reject<std::runtime_error>(invoke);
+    flags = D3D12_HEAP_FLAG_NONE;
+    properties.Type = D3D12_HEAP_TYPE_CUSTOM;
+    Reject<std::runtime_error>(invoke);
+    properties.Type = D3D12_HEAP_TYPE_DEFAULT;
+    Reject<std::invalid_argument>([&] { create(device, nullptr, flags, &description, state, nullptr, ResourceId, &output); });
+    Reject<std::invalid_argument>([&] { create(device, &properties, flags, nullptr, state, nullptr, ResourceId, &output); });
+    D3D12_CLEAR_VALUE clear{};
+    Reject<std::invalid_argument>([&] { create(device, &properties, flags, &description, state, &clear, ResourceId, &output); });
+}

@@ -54,6 +54,10 @@ int main(int argc, char** argv) {
             CheckProperties(device);
             CheckAllocation(device);
             CheckCommittedTextures(device);
+            CheckCommittedBuffers(device);
+            CheckCommittedBufferGpu(device);
+            CheckCommittedBufferInvalid(device);
+            CheckCommittedTextureLegacy(device);
             CheckQueues(device);
             CheckFences(device);
             CheckQueryHeaps(device);

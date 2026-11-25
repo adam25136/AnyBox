@@ -35,7 +35,7 @@ std::unique_ptr<AnyBox::Graphics::TextureBacking> AnyBox::Graphics::CreateTextur
     if ((description.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0) image.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     if ((description.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) != 0) image.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
     Descriptor::Texture2DDescription guest{image.extent.width, image.extent.height, image.arrayLayers, image.mipLevels, format.hardwareFormat, ComputeTextureSwizzleMode(base)};
-    TextureMemory memory(allocation.size, allocation.alignment, flags);
+    ResourceMemory memory(allocation.size, allocation.alignment, flags);
     Descriptor::SurfacePitch pitch{allocation.pixelPitch, allocation.pixelHeight};
     return std::make_unique<TextureBacking>(*device, std::move(memory), image, guest, properties, flags, layout, pitch);
 }

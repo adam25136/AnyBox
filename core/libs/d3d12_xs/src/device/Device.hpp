@@ -82,6 +82,7 @@ public:
     static HRESULT CreateCommandQueue(Device* self, const D3D12_COMMAND_QUEUE_DESC* description, const Guid& interfaceId, void** queue);
     static HRESULT CreateFence(Device* self, std::uint64_t initialValue, D3D12_FENCE_FLAGS flags, const Guid& interfaceId, void** fence);
     static HRESULT CreateQueryHeap(Device* self, const D3D12_QUERY_HEAP_DESC* description, const Guid& interfaceId, void** heap);
+    static HRESULT CreateCommittedResource(Device* self, const D3D12_HEAP_PROPERTIES* properties, D3D12_HEAP_FLAGS flags, const D3D12_RESOURCE_DESC* description, D3D12_RESOURCE_STATES state, const D3D12_CLEAR_VALUE* clearValue, const Guid& interfaceId, void** resource);
     static HRESULT CreateCommandQueueX(Device* self, const XboxQueueDescription* description, const Guid& interfaceId, void** queue);
     void ReleaseQueueSelection(std::uint32_t selection) noexcept;
     static HRESULT CreateCommandAllocator(Device* self, D3D12_COMMAND_LIST_TYPE type, const Guid& interfaceId, void** allocator);

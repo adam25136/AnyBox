@@ -38,6 +38,10 @@ void Reject(TCallable&& callable) {
 void CheckProperties(Device* device);
 void CheckAllocation(Device* device);
 void CheckCommittedTextures(Device* device);
+void CheckCommittedBuffers(Device* device);
+void CheckCommittedBufferGpu(Device* device);
+void CheckCommittedBufferInvalid(Device* device);
+void CheckCommittedTextureLegacy(Device* device);
 void CheckQueues(Device* device);
 void CheckFences(Device* device);
 void CheckQueryHeaps(Device* device);
