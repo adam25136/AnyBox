@@ -4,10 +4,10 @@
 using namespace AnyBox::Shader;
 using namespace AnyBox::Graphics::Container;
 
-std::optional<RootArgumentRange> AnyBox::Shader::Dxil::MatchRootArgument(const BufferBinding& binding, const RootParameter& parameter, std::uint32_t index) {
+std::optional<RootArgumentRange> AnyBox::Shader::Dxil::MatchRootArgument(const BufferBinding& binding, const RootParameter& parameter, std::uint32_t index, std::uint32_t visibility) {
     if (static_cast<unsigned>(parameter.kind) > 4 || parameter.visibility > 7) throw std::invalid_argument("Root parameter type or visibility is invalid");
     if ((parameter.flags & ~0xEU) != 0) throw std::invalid_argument("Root descriptor flags are invalid");
-    if (parameter.visibility != 0) return std::nullopt;
+    if (parameter.visibility != 0 && parameter.visibility != visibility) return std::nullopt;
     auto match = [&](RootArgumentKind kind, std::uint32_t offset, std::uint32_t words) { return RootArgumentRange{binding, kind, index, offset, 0, words}; };
     if (parameter.kind != RootParameterKind::Table) {
         auto category = parameter.kind == RootParameterKind::Constants || parameter.kind == RootParameterKind::ConstantBuffer ? ResourceClass::ConstantBuffer : parameter.kind == RootParameterKind::ShaderResource ? ResourceClass::ShaderResource : ResourceClass::UnorderedAccess;

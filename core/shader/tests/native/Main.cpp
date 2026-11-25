@@ -10,6 +10,7 @@ void CheckNativeLinkage();
 void CheckNativeVertex();
 void CheckNativeFloatingProfile();
 void CheckNativeRootArguments();
+void CheckNativeGraphicsRootArguments();
 void CheckNativeFlow();
 void CheckNativeScratchWrites();
 void CheckNativeImages();
@@ -29,6 +30,7 @@ int main() {
         CheckNativeVertex();
         CheckNativeFloatingProfile();
         CheckNativeRootArguments();
+        CheckNativeGraphicsRootArguments();
         CheckNativeFlow();
         CheckNativeScratchWrites();
         CheckNativeImages();

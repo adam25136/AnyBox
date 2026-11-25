@@ -1,5 +1,6 @@
 #include "Map.hpp"
 #include "../Optimize.hpp"
+#include "../Buffers.hpp"
 #include <Recompiler.hpp>
 #include <IntermediateRepresentation/IrBuilder.hpp>
 #include <algorithm>
@@ -26,17 +27,14 @@ bool SpillAddress(const IrValue* value) {
     if (high->Opcode() != IrOpcode::BitwiseAnd32 || high->ArgumentCount() != 2) return false;
     return (UserData(high->Argument(0), 1) && Immediate(high->Argument(1), 255)) || (UserData(high->Argument(1), 1) && Immediate(high->Argument(0), 255));
 }
-}
 
-void AnyBox::Shader::BindNativeRootArguments(NativeComputeTranslation& translation, std::span<const Graphics::Container::NativeRootBinding> roots, const RootArgumentPlan& plan) {
-    using namespace ShaderRecompiler;
-    if (translation.rootArgumentsBound) throw std::logic_error("Native root arguments were already bound");
+void BindArguments(IrProgram& program, std::span<const AnyBox::Graphics::Container::NativeRootBinding> roots, const AnyBox::Shader::RootArgumentPlan& plan, std::uint32_t initialRegisters, bool scalarBuffers) {
+    using namespace AnyBox::Shader;
     auto mapping = MapNativeArguments(roots, plan);
     bool spillPointer = std::ranges::none_of(roots, [](const auto& root) { return root.firstUserRegister < 2; });
     for (const auto& root : roots) {
-        if (root.firstUserRegister < 16 && std::min<std::uint32_t>(16, root.firstUserRegister + root.registerCount) > static_cast<unsigned>(translation.input.workgroupRegister)) throw std::invalid_argument("Native root arguments overlap initial system registers");
+        if (root.firstUserRegister < 16 && std::min<std::uint32_t>(16, root.firstUserRegister + root.registerCount) > initialRegisters) throw std::invalid_argument("Native root arguments overlap initial system registers");
     }
-    auto& program = translation.program;
     if (program.Resources().srtPlanComplete || program.Resources().resourceTrackingComplete) throw std::logic_error("Native root arguments require an unplanned program");
     std::vector<IrValue*> original;
     std::unordered_set<std::uint32_t> originalIds;
@@ -71,14 +69,13 @@ void AnyBox::Shader::BindNativeRootArguments(NativeComputeTranslation& translati
         value->ReplaceAllUsesWith(&replacement);
     }
     program.Resources().userDataCount = plan.GetUserRegisterCount();
-    OptimizeNativeProgram(program, translation.input.waveSize);
+    OptimizeNativeProgram(program, program.WaveSize());
     for (const auto& block : program.Blocks()) {
         for (auto* value : block->Instructions()) {
             if (originalIds.contains(value->Id())) throw std::runtime_error("Native initial user data remains outside the logical root argument mapping");
             if (BufferAccessOf(value->Opcode()) != BufferAccess::None) {
                 auto& memory = program.Resources().memoryInfo.at(value->Flags<MemoryFlags>().index);
-                if (memory.kind == ResourceKind::ScalarBuffer) throw std::runtime_error("Native scalar buffer root argument accesses are not implemented");
-                if (memory.kind == ResourceKind::Buffer) memory.gpuDescriptor = true;
+                if (!scalarBuffers && memory.kind == ResourceKind::ScalarBuffer) throw std::runtime_error("Native scalar buffer root argument accesses are not implemented");
             }
             if (value->Opcode() == IrOpcode::LoadAddressU32) {
                 auto& memory = program.Resources().memoryInfo.at(value->Flags<MemoryFlags>().index);
@@ -86,5 +83,18 @@ void AnyBox::Shader::BindNativeRootArguments(NativeComputeTranslation& translati
             }
         }
     }
+    MarkNativeBufferDescriptors(program);
+}
+}
+
+void AnyBox::Shader::BindNativeRootArguments(NativeComputeTranslation& translation, std::span<const Graphics::Container::NativeRootBinding> roots, const RootArgumentPlan& plan) {
+    if (translation.rootArgumentsBound) throw std::logic_error("Native root arguments were already bound");
+    BindArguments(translation.program, roots, plan, static_cast<std::uint32_t>(translation.input.workgroupRegister), false);
     translation.rootArgumentsBound = true;
+}
+
+void AnyBox::Shader::BindNativeGraphicsRootArguments(ShaderRecompiler::IrProgram& program, std::span<const Graphics::Container::NativeRootBinding> roots, const RootArgumentPlan& plan) {
+    auto stage = program.Resources().stage;
+    if (stage != ShaderRecompiler::IrShaderStage::Vertex && stage != ShaderRecompiler::IrShaderStage::Pixel) throw std::invalid_argument("Native graphics root arguments require a vertex or pixel program");
+    BindArguments(program, roots, plan, program.Resources().userDataCount, true);
 }

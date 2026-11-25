@@ -35,4 +35,5 @@ struct NativeBindings {
 };
 
 NativeBindings ReadNativeComputeBindings(std::span<const std::byte> program);
+NativeBindings ReadNativeBindings(std::span<const std::byte> program);
 }

@@ -1,5 +1,6 @@
 #include <anybox/graphics/container/NativeBindings.hpp>
 #include <anybox/graphics/container/NativeCompute.hpp>
+#include <anybox/graphics/container/NativeStage.hpp>
 #include <anybox/graphics/container/Native.hpp>
 #include "../Integer.hpp"
 
@@ -34,6 +35,11 @@ std::uint8_t Byte(std::span<const std::byte> entry, std::size_t index) {
 
 AnyBox::Graphics::Container::NativeBindings AnyBox::Graphics::Container::ReadNativeComputeBindings(std::span<const std::byte> program) {
     (void)ReadNativeComputeState(program);
+    return ReadNativeBindings(program);
+}
+
+AnyBox::Graphics::Container::NativeBindings AnyBox::Graphics::Container::ReadNativeBindings(std::span<const std::byte> program) {
+    (void)ReadNativeStageState(program);
     FssmView view(program);
     auto roots = Table(program, view, 0xE8, 0xF8);
     auto resources = Table(program, view, 0xF0, 0xFC);

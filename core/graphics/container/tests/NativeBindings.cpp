@@ -39,6 +39,13 @@ void CheckNativeBindings() {
     Require(resource.kind == NativeResourceKind::UnorderedAccess && resource.rootKind == NativeRootKind::Descriptor);
     Require(resource.tableOffset == 7 && resource.firstShaderRegister == 9 && resource.stride == 1);
     Require(resource.descriptorWords == 4 && resource.firstUserRegister == 37 && resource.rootParameter == 3);
+    for (auto stage : {4u, 5u, 6u}) {
+        auto graphics = data;
+        Set(graphics, 0x100, stage);
+        auto result = ReadNativeBindings(graphics);
+        Require(result.roots.size() == 1 && result.resources.size() == 1);
+        Require(result.roots[0].registerCount == root.registerCount && result.resources[0].stride == resource.stride);
+    }
 
     for (std::uint32_t kind : {0u, 1u, 3u, 4u, 5u, 6u}) {
         auto selected = data;

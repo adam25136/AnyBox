@@ -17,7 +17,7 @@ struct RootArgumentRange {
 
 class RootArgumentPlan {
 public:
-    RootArgumentPlan(std::span<const BufferBinding> bindings, const Graphics::Container::RootSignatureLayout& root, std::uint32_t firstUserRegister = 0);
+    RootArgumentPlan(std::span<const BufferBinding> bindings, const Graphics::Container::RootSignatureLayout& root, std::uint32_t firstUserRegister = 0, std::uint32_t visibility = 0);
     std::span<const RootArgumentRange> GetRanges() const;
     const RootArgumentRange& Find(const BufferBinding& binding) const;
     std::uint32_t GetUserRegisterCount() const;
