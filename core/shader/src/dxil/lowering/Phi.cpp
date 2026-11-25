@@ -10,6 +10,7 @@ bool SameConstant(const ShaderRecompiler::IrValue& first, const ShaderRecompiler
     switch (first.Type()) {
         case ShaderRecompiler::IrType::Bool: return first.ImmediateBool() == second.ImmediateBool();
         case ShaderRecompiler::IrType::U64: return first.ImmediateU64() == second.ImmediateU64();
+        case ShaderRecompiler::IrType::F16: return first.ImmediateF16Bits() == second.ImmediateF16Bits();
         case ShaderRecompiler::IrType::F32: return std::bit_cast<std::uint32_t>(first.ImmediateF32()) == std::bit_cast<std::uint32_t>(second.ImmediateF32());
         default: return first.ImmediateU32() == second.ImmediateU32();
     }

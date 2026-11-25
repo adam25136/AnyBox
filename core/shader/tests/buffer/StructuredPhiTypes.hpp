@@ -11,6 +11,7 @@ inline ShaderRecompiler::IrValue& PhiPayload(ShaderRecompiler::IrBuilder& builde
         case IrType::U8: return builder.Emit(IrOpcode::ConvertU8U32, type, {&value});
         case IrType::U16: return builder.Emit(IrOpcode::ConvertU16U32, type, {&value});
         case IrType::F32: return builder.BitCastF32(value);
+        case IrType::F16: return builder.BitCastF16(value);
         case IrType::U64: return builder.ConstructU64(value, builder.IMul(value, builder.Constant(17)));
         default: throw std::logic_error("Structured PHI fixture type is unsupported");
     }
@@ -24,6 +25,7 @@ inline ShaderRecompiler::IrValue& PhiWord(ShaderRecompiler::IrBuilder& builder, 
         case IrType::U8: return builder.Emit(IrOpcode::ConvertU32U8, IrType::U32, {&value});
         case IrType::U16: return builder.Emit(IrOpcode::ConvertU32U16, IrType::U32, {&value});
         case IrType::F32: return builder.BitCastU32(value);
+        case IrType::F16: return builder.BitCastU32FromF16(value);
         case IrType::U64: return builder.CompositeExtract(value, 0);
         default: throw std::logic_error("Structured PHI result type is unsupported");
     }

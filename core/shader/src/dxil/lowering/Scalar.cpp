@@ -1,6 +1,7 @@
 #include "Scalar.hpp"
 #include "Buffer.hpp"
 #include "Local.hpp"
+#include "HalfScalar.hpp"
 #include <cast.hpp>
 #include <stdexcept>
 #include <bit>
@@ -39,7 +40,7 @@ IrValue& ScalarLowering::Get(const LLVMBC::Value& value) {
         return output;
     }
     auto resultType = GetType(value);
-    auto bits = resultType == IrType::F32 ? 0u : width(value);
+    auto bits = resultType == IrType::F32 || resultType == IrType::F16 ? 0u : width(value);
     IrValue* output = nullptr;
     if (auto* loadedInstruction = LLVMBC::dyn_cast<LLVMBC::LoadInst>(&value)) {
         if (!locals) throw std::runtime_error("DXIL local load has no local storage configuration");
@@ -49,13 +50,15 @@ IrValue& ScalarLowering::Get(const LLVMBC::Value& value) {
         output = &locals->Atomic(*atomicInstruction, *this);
     } else if (LLVMBC::isa<LLVMBC::UndefValue>(&value)) {
         if (resultType == IrType::F32) output = &builder.ConstantF32(0);
+        else if (resultType == IrType::F16) output = &builder.ConstantF16(0);
         else if (resultType == IrType::Bool) output = &builder.ConstantBool(false);
         else if (resultType == IrType::U64) output = &builder.ConstantU64(0);
         else output = &builder.Constant(0);
     } else if (auto* floatingConstant = LLVMBC::dyn_cast<LLVMBC::ConstantFP>(&value)) {
-        if (resultType != IrType::F32) throw std::runtime_error("DXIL floating constant type is not implemented");
         auto data = static_cast<std::uint32_t>(floatingConstant->getValueAPF().bitcastToAPInt().getZExtValue());
-        output = &builder.ConstantF32(std::bit_cast<float>(data));
+        if (resultType == IrType::F16) output = &builder.ConstantF16(static_cast<std::uint16_t>(data));
+        else if (resultType == IrType::F32) output = &builder.ConstantF32(std::bit_cast<float>(data));
+        else throw std::runtime_error("DXIL floating constant type is not implemented");
     } else if (auto* integerConstant = LLVMBC::dyn_cast<LLVMBC::ConstantInt>(&value)) {
         auto data = integerConstant->getUniqueInteger().getZExtValue();
         if (bits == 64) output = &builder.ConstantU64(data);
@@ -70,7 +73,8 @@ IrValue& ScalarLowering::Get(const LLVMBC::Value& value) {
     } else if (auto* integerComparison = LLVMBC::dyn_cast<LLVMBC::ICmpInst>(&value)) {
         output = &compare(*integerComparison);
     } else if (auto* conversion = LLVMBC::dyn_cast<LLVMBC::CastInst>(&value)) {
-        output = resultType == IrType::F32 || conversion->getOperand(0)->getType()->getTypeID() == LLVMBC::Type::TypeID::FloatTyID ? &floatCast(*conversion) : &cast(*conversion);
+        if (IsHalf(value) || IsHalf(*conversion->getOperand(0))) output = &LowerHalfCast(*conversion, *this, builder);
+        else output = resultType == IrType::F32 || conversion->getOperand(0)->getType()->getTypeID() == LLVMBC::Type::TypeID::FloatTyID ? &floatCast(*conversion) : &cast(*conversion);
     } else if (auto* extraction = LLVMBC::dyn_cast<LLVMBC::ExtractValueInst>(&value)) {
         if (buffers) {
             output = buffers->Extract(*extraction, *this);

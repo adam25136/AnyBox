@@ -85,7 +85,7 @@ void CheckStructuredPhi(AnyBox::Vulkan::Context& context) {
     info.threadsNum[0] = 64;
     info.threadsNum[1] = info.threadsNum[2] = 1;
     info.waveSize = info.hostSubgroupSize = 32;
-    for (auto type : {IrType::Bool, IrType::U8, IrType::U16, IrType::U32, IrType::U64, IrType::F32}) {
+    for (auto type : {IrType::Bool, IrType::U8, IrType::U16, IrType::U32, IrType::U64, IrType::F16, IrType::F32}) {
         auto program = MakeKernel(type);
         auto shader = AnyBox::Shader::Dxil::CompileCompute(program, info, Target(), {0, 0, 0, 128});
         std::vector<std::uint32_t> expected;

@@ -1,4 +1,5 @@
 #include "Scalar.hpp"
+#include "HalfScalar.hpp"
 
 using namespace ShaderRecompiler;
 using AnyBox::Shader::Dxil::ScalarLowering;
@@ -12,6 +13,7 @@ unsigned ScalarLowering::width(const LLVMBC::Value& value) {
 }
 
 IrType ScalarLowering::GetType(const LLVMBC::Value& value) {
+    if (IsHalf(value)) return IrType::F16;
     if (value.getType() && value.getType()->getTypeID() == LLVMBC::Type::TypeID::FloatTyID) return IrType::F32;
     auto bits = width(value);
     return bits == 1 ? IrType::Bool : bits == 64 ? IrType::U64 : IrType::U32;
@@ -45,7 +47,7 @@ IrValue& ScalarLowering::signedValue(IrValue& value, unsigned bits) {
 void ScalarLowering::Bind(const LLVMBC::Value& source, IrValue& value) {
     if (values.contains(&source)) throw std::logic_error("DXIL value is already bound");
     auto expected = GetType(source);
-    if (value.IsPhi() || expected == IrType::F32) {
+    if (value.IsPhi() || expected == IrType::F32 || expected == IrType::F16) {
         if (value.Type() != expected) throw std::logic_error("DXIL scalar binding has an incompatible IR type");
         values.emplace(&source, &value);
         return;

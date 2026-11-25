@@ -19,6 +19,7 @@ IrValue& ScalarLowering::floatBinary(const LLVMBC::BinaryOperator& instruction) 
 }
 
 IrValue& ScalarLowering::negate(const LLVMBC::UnaryOperator& instruction) {
+    if (instruction.getOpcode() == LLVMBC::UnaryOperator::UnaryOps::FNeg && GetType(instruction) == IrType::F16) return builder.BitCastF16(builder.BitwiseXor(builder.BitCastU32FromF16(Get(*instruction.getOperand(0))), builder.Constant(0x8000)));
     if (instruction.getOpcode() != LLVMBC::UnaryOperator::UnaryOps::FNeg || GetType(instruction) != IrType::F32) throw std::runtime_error("DXIL scalar unary operation is not implemented");
     auto& value = Get(*instruction.getOperand(0));
     auto& bits = builder.BitwiseXor(builder.BitCastU32(value), builder.Constant(0x80000000));
