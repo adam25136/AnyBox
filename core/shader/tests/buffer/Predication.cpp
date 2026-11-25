@@ -2,6 +2,7 @@
 #include "flow/predication/Plan.hpp"
 #include "ComputeCompiler.hpp"
 #include "Fixtures.hpp"
+#include <bit>
 
 namespace {
 std::uint32_t InputWord(unsigned index) {
@@ -10,8 +11,8 @@ std::uint32_t InputWord(unsigned index) {
     return result;
 }
 
-void CheckGpu(AnyBox::Vulkan::Context& context, unsigned mode, unsigned branches, unsigned threads, bool load, bool diagnostic, unsigned phiKind = 0) {
-    auto program = BufferTests::PredicationKernel(mode, branches, load, diagnostic, phiKind);
+void CheckGpu(AnyBox::Vulkan::Context& context, unsigned mode, unsigned branches, unsigned threads, bool load, bool diagnostic, unsigned phiKind = 0, bool bitCount = false) {
+    auto program = BufferTests::PredicationKernel(mode, branches, load, diagnostic, phiKind, bitCount);
     ShaderRecompiler::ShaderComputeInputInfo info;
     info.threadsNum[0] = threads;
     info.threadsNum[1] = info.threadsNum[2] = 1;
@@ -26,6 +27,7 @@ void CheckGpu(AnyBox::Vulkan::Context& context, unsigned mode, unsigned branches
         bool writes = active ? branches != 1 : branches != 0;
         auto payload = load ? InputWord(index) + index : index * 17 + 5;
         if (!active) payload ^= 0xF0C33CAB;
+        if (bitCount) payload = static_cast<std::uint32_t>(std::popcount(payload) + std::popcount(lane));
         expected.push_back(writes ? payload : UINT32_MAX);
         auto selected = writes ? payload : 0xDEADBEEF;
         expected.push_back(phiKind == 1 ? selected & 1 : selected);
@@ -43,6 +45,7 @@ void CheckPredication(AnyBox::Vulkan::Context& context) {
         for (unsigned branches = 0; branches < 3; ++branches) CheckGpu(context, mode, branches, 128, true, true);
     }
     for (unsigned phiKind : {1u, 2u}) CheckGpu(context, 0, 2, 128, true, true, phiKind);
+    for (unsigned mode : {0u, 1u}) CheckGpu(context, mode, 2, 128, true, true, 0, true);
     for (unsigned threads : {1u, 33u, 65u, 95u, 127u}) CheckGpu(context, 1, 2, threads, true, true);
     auto program = PredicationKernel(1, 0, true, 2);
     ShaderRecompiler::ShaderComputeInputInfo info;

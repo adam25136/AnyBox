@@ -10,6 +10,9 @@ bool Pure(IrOpcode opcode) {
         case IrOpcode::GetBuiltin:
         case IrOpcode::GetUserData:
         case IrOpcode::GetAddressResource:
+        case IrOpcode::LaneId:
+        case IrOpcode::BitCount32:
+        case IrOpcode::BitCount64:
         case IrOpcode::IAdd32:
         case IrOpcode::ISub32:
         case IrOpcode::IMul32:
@@ -39,6 +42,7 @@ bool Pure(IrOpcode opcode) {
         case IrOpcode::ULessThan32:
         case IrOpcode::ULessThan64:
         case IrOpcode::UGreaterThan32:
+        case IrOpcode::UGreaterThanEqual32:
         case IrOpcode::UGreaterThan64:
         case IrOpcode::LogicalAnd:
         case IrOpcode::LogicalOr:

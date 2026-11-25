@@ -3,7 +3,7 @@
 #include "AtomicKernel.hpp"
 
 namespace BufferTests {
-inline ShaderRecompiler::IrProgram PredicationKernel(unsigned conditionMode, unsigned branchMode, bool load = false, unsigned diagnostic = 0, unsigned phiKind = 0) {
+inline ShaderRecompiler::IrProgram PredicationKernel(unsigned conditionMode, unsigned branchMode, bool load = false, unsigned diagnostic = 0, unsigned phiKind = 0, bool bitCount = false) {
     using namespace ShaderRecompiler;
     AtomicKernel fixture;
     auto& program = fixture.program;
@@ -54,6 +54,11 @@ inline ShaderRecompiler::IrProgram PredicationKernel(unsigned conditionMode, uns
             value = &builder.IAdd(fixture.Memory(IrOpcode::LoadAddressU32, offset, 1), global);
         }
         if (block == negative) value = &builder.BitwiseXor(*value, builder.Constant(0xF0C33CAB));
+        if (bitCount) {
+            auto& bodyLane = builder.Emit(IrOpcode::LaneId, IrType::U32, {});
+            auto& wide = builder.ConstructU64(*value, bodyLane);
+            value = &builder.Emit(IrOpcode::BitCount64, IrType::U32, {&wide});
+        }
         if (diagnostic) {
             auto& inactive = diagnostic == 2 ? builder.ConstantBool(true) : block == positive ? builder.LogicalNot(*condition) : *condition;
             (void)builder.Emit(IrOpcode::DescriptorFault, IrType::Void, {&inactive, &builder.Constant(0), &builder.Constant(0), &builder.Constant(0)});
