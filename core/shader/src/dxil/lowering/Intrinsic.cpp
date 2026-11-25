@@ -13,6 +13,7 @@
 #include "FirstLane.hpp"
 #include "HalfPack.hpp"
 #include "UnaryInteger.hpp"
+#include "WaveReadLane.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -52,6 +53,10 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "xbox.LaneSwizzle.i32") return LowerLaneSwizzle(instruction, *this, builder, program);
     if (identifier == "xbox.V_CNDMASK_B32") return LowerConditionalMask(instruction, *this, builder, program);
     if (identifier == "xbox.ReadLane.i32") return LowerReadLane(instruction, *this, builder, program);
+    if (identifier == "dx.op.waveReadLaneAt.i1") return LowerWaveReadLane(instruction, *this, builder, program, 1);
+    if (identifier == "dx.op.waveReadLaneAt.i32") return LowerWaveReadLane(instruction, *this, builder, program, 32);
+    if (identifier == "dx.op.waveReadLaneAt.i64") return LowerWaveReadLane(instruction, *this, builder, program, 64);
+    if (identifier == "dx.op.waveReadLaneAt.f32") return LowerWaveReadLane(instruction, *this, builder, program, 32, true);
     if (identifier == "xbox.GetLaneID") return waveBuiltin(instruction, 64);
     if (identifier == "xbox.S_BCNT1_U64") return LowerBitCount64(instruction, *this, builder);
     if (identifier == "xbox.MBCNT64") return LowerMaskBitCount64(instruction, *this, builder, program);

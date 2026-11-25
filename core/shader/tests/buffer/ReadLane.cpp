@@ -5,6 +5,7 @@
 
 void CheckReadLaneControl(AnyBox::Vulkan::Context& context);
 void CheckActiveLaneProof();
+void CheckIndexedLane(AnyBox::Vulkan::Context& context);
 
 namespace {
 void Invalid() {
@@ -55,6 +56,7 @@ namespace BufferTests {
 void CheckReadLane(AnyBox::Vulkan::Context& context) {
     Invalid();
     CheckActiveLaneProof();
+    CheckIndexedLane(context);
     CheckReadLaneControl(context);
     std::vector<std::uint32_t> selectors;
     for (unsigned lane = 0; lane < 64; ++lane) selectors.push_back(lane);

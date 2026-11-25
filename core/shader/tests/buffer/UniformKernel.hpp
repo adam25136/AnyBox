@@ -1,12 +1,16 @@
 #pragma once
 
 #include "AtomicKernel.hpp"
+#include <optional>
 
 namespace BufferTests {
+enum class LaneSelectorMode { Constant, Own, Xor, Reverse };
+struct IndexedLaneSelector { LaneSelectorMode mode; unsigned lane = 0; };
 inline const char* UniformName(unsigned bits) { return bits == 32 ? "xbox.MakeUniform.i32" : "xbox.MakeUniform.i64"; }
 inline const char* FirstLaneName(unsigned bits, bool floating) { return floating ? "dx.op.waveReadLaneFirst.f32" : bits == 1 ? "dx.op.waveReadLaneFirst.i1" : bits == 64 ? "dx.op.waveReadLaneFirst.i64" : "dx.op.waveReadLaneFirst.i32"; }
+inline const char* IndexedLaneName(unsigned bits, bool floating) { return floating ? "dx.op.waveReadLaneAt.f32" : bits == 1 ? "dx.op.waveReadLaneAt.i1" : bits == 64 ? "dx.op.waveReadLaneAt.i64" : "dx.op.waveReadLaneAt.i32"; }
 
-inline ShaderRecompiler::IrProgram UniformKernel(unsigned bits, unsigned waveSize, unsigned firstActive, bool uniform, bool dxil = false, bool floating = false) {
+inline ShaderRecompiler::IrProgram UniformKernel(unsigned bits, unsigned waveSize, unsigned firstActive, bool uniform, bool dxil = false, bool floating = false, std::optional<IndexedLaneSelector> indexed = {}) {
     using namespace ShaderRecompiler;
     if ((!dxil && (bits != 32 && bits != 64)) || (floating && (!dxil || bits != 32))) throw std::invalid_argument("Invalid first lane fixture overload");
     AtomicKernel fixture;
@@ -43,10 +47,23 @@ inline ShaderRecompiler::IrProgram UniformKernel(unsigned bits, unsigned waveSiz
     auto& input = bits == 1 ? (uniform ? builder.ConstantBool(true) : builder.INotEqual(builder.BitwiseAnd(index, builder.Constant(65)), builder.Constant(0))) : bits == 64 ? builder.ConstructU64(low, high) : floating ? builder.BitCastF32(low) : low;
     auto* argument = context.construct<LLVMBC::Argument>(resultType, 0, false);
     fixture.scalar.Bind(*argument, input);
-    auto* signature = context.construct<LLVMBC::FunctionType>(context, resultType, LLVMBC::Vector<LLVMBC::Type*>{word, resultType});
-    fixture.source.Module().add_value_name(50, dxil ? FirstLaneName(bits, floating) : UniformName(bits));
+    LLVMBC::Vector<LLVMBC::Type*> parameters{word, resultType};
+    LLVMBC::Vector<LLVMBC::Value*> arguments{LLVMBC::ConstantInt::get(word, indexed ? 117 : dxil ? 118 : 50), argument};
+    if (indexed) {
+        parameters.push_back(word);
+        if (indexed->mode == LaneSelectorMode::Constant) arguments.push_back(LLVMBC::ConstantInt::get(word, indexed->lane));
+        else {
+            auto& lane = builder.Emit(IrOpcode::LaneId, IrType::U32, {});
+            auto& selector = indexed->mode == LaneSelectorMode::Own ? lane : indexed->mode == LaneSelectorMode::Xor ? builder.BitwiseXor(lane, builder.Constant(1)) : builder.ISub(builder.Constant(waveSize - 1), lane);
+            auto* selected = context.construct<LLVMBC::Argument>(word, 1, false);
+            fixture.scalar.Bind(*selected, selector);
+            arguments.push_back(selected);
+        }
+    }
+    auto* signature = context.construct<LLVMBC::FunctionType>(context, resultType, std::move(parameters));
+    fixture.source.Module().add_value_name(50, indexed ? IndexedLaneName(bits, floating) : dxil ? FirstLaneName(bits, floating) : UniformName(bits));
     auto* function = context.construct<LLVMBC::Function>(signature, 50, fixture.source.Module());
-    auto* call = context.construct<LLVMBC::CallInst>(signature, function, LLVMBC::Vector<LLVMBC::Value*>{LLVMBC::ConstantInt::get(word, dxil ? 118 : 50), argument});
+    auto* call = context.construct<LLVMBC::CallInst>(signature, function, std::move(arguments));
     auto& result = fixture.scalar.Get(*call);
     auto write = [&](IrValue& value) {
         auto& offset = builder.ShiftLeftLogical(index, builder.Constant(bits == 64 ? 3 : 2));

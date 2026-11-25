@@ -1,5 +1,6 @@
 #include "LaneReads.hpp"
 #include "ActiveLane.hpp"
+#include "../lowering/LaneReadMode.hpp"
 #include "../../backend/WaveControl.hpp"
 #include <IntermediateRepresentation/IrProgram.hpp>
 #include <Optimization/ShaderStageInputInfo.hpp>
@@ -33,7 +34,13 @@ void AnyBox::Shader::Dxil::Flow::ValidateLaneReads(const IrProgram& program, con
     BlockMap blocks;
     for (auto* block : program.BlockOrder()) {
         blocks.emplace(block->Id(), block);
-        for (auto* instruction : block->Instructions()) if (instruction->Opcode() == IrOpcode::ReadLane) reads.push_back(instruction);
+        for (auto* instruction : block->Instructions()) {
+            if (instruction->Opcode() != IrOpcode::ReadLane) continue;
+            auto mode = instruction->Flags<LaneReadMode>();
+            if (mode == LaneReadMode::Active) continue;
+            if (mode != LaneReadMode::Xbox) throw std::runtime_error("Lane read semantics are unsupported");
+            reads.push_back(instruction);
+        }
     }
     if (reads.empty()) return;
     std::unordered_set<const IrBlock*> divergent;
