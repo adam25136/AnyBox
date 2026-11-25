@@ -6,15 +6,16 @@ void AnyBox::Shader::Runtime::CheckRequirements(const Vulkan::Context& context, 
     ValidateComputeArtifact(artifact);
     const auto& limits = context.GetProperties().limits;
     const auto& subgroups = context.GetSubgroupProperties();
-    if (subgroups.subgroupSize != artifact.waveSize || (subgroups.supportedStages & VK_SHADER_STAGE_COMPUTE_BIT) == 0) throw std::runtime_error("Offline compute pipeline requires a matching compute subgroup size");
+    if (subgroups.subgroupSize != artifact.hostSubgroupSize || (subgroups.supportedStages & VK_SHADER_STAGE_COMPUTE_BIT) == 0) throw std::runtime_error("Offline compute pipeline requires a matching compute subgroup size");
     if (artifact.executionFlags != 0 || artifact.splitStateLanes != 0 || artifact.scratchPoolSlotDwords != 0) throw std::runtime_error("Offline compute pipeline execution extensions are not implemented");
     if (artifact.pushConstantOffset != 0 || artifact.stencilReference != UINT32_MAX || artifact.memoryOffsetCount != 0 || artifact.dispatchThreadLimit || artifact.runtimeImageCount != 0 || artifact.runtimeStateDwords != 0) throw std::runtime_error("Offline compute pipeline runtime data extensions are not implemented");
     if (!artifact.userRegisters.empty() && artifact.pushDataStart == UINT32_MAX) throw std::runtime_error("Offline compute pipeline external shader data is not implemented");
     if (artifact.pushConstantSize > limits.maxPushConstantsSize || artifact.sharedMemoryBytes > limits.maxComputeSharedMemorySize) throw std::runtime_error("Offline compute pipeline exceeds the device constant or shared memory limit");
     std::uint64_t threads = 1;
+    auto local = ReadComputeWorkgroup(artifact);
     for (unsigned index = 0; index < 3; ++index) {
-        if (artifact.threads[index] > limits.maxComputeWorkGroupSize[index]) throw std::runtime_error("Offline compute pipeline workgroup dimension exceeds the device limit");
-        threads *= artifact.threads[index];
+        if (local[index] > limits.maxComputeWorkGroupSize[index]) throw std::runtime_error("Offline compute pipeline workgroup dimension exceeds the device limit");
+        threads *= local[index];
     }
     if (threads > limits.maxComputeWorkGroupInvocations) throw std::runtime_error("Offline compute pipeline workgroup size exceeds the device limit");
 

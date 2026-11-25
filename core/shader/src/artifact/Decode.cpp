@@ -6,7 +6,7 @@ using namespace AnyBox::Shader::ArtifactFormat;
 
 ComputeArtifact AnyBox::Shader::DecodeComputeArtifact(std::span<const std::byte> data, const ShaderDigest& expectedSource) {
     Reader input(data);
-    if (!std::ranges::equal(input.Bytes(Magic.size()), Magic) || input.Word() != 1) throw std::invalid_argument("Shader artifact magic or version is invalid");
+    if (!std::ranges::equal(input.Bytes(Magic.size()), Magic) || input.Word() != 2) throw std::invalid_argument("Shader artifact magic or version is invalid");
     auto size = input.Word();
     if (!std::ranges::equal(input.Bytes(expectedSource.size()), expectedSource)) throw std::invalid_argument("Shader artifact does not match its source bytecode");
     auto hash = input.Bytes(32);
@@ -36,6 +36,7 @@ ComputeArtifact AnyBox::Shader::DecodeComputeArtifact(std::span<const std::byte>
     artifact.executionFlags = reader.Word();
     artifact.splitStateLanes = reader.Word();
     artifact.scratchPoolSlotDwords = reader.Word();
+    artifact.hostSubgroupSize = reader.Word();
     artifact.userRegisters = reader.Words();
     auto descriptorCount = reader.Count(2);
     for (std::uint32_t index = 0; index < descriptorCount; ++index) {

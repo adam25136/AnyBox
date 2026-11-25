@@ -59,13 +59,25 @@ void Check() {
     mutate(1, 13);
     mutate(2, 2);
     mutate(3, 0);
-    mutate(6, 64);
+    mutate(6, 128);
     mutate(8, 129);
     mutate(10, 32);
     mutate(12, 0);
     mutate(14, 2);
     mutate(17, 16);
     mutate(20, UINT32_MAX);
+    mutate(21, UINT32_MAX);
+    auto previous = bytes;
+    previous[8] = std::byte{1};
+    Reject([&] { DecodeComputeArtifact(previous, digest); });
+    for (auto wave : {32u, 64u}) {
+        for (auto subgroup : {32u, 64u}) {
+            auto selected = artifact;
+            selected.waveSize = wave;
+            selected.hostSubgroupSize = subgroup;
+            Require(DecodeComputeArtifact(EncodeComputeArtifact(selected), digest) == selected);
+        }
+    }
     auto invalid = artifact;
     invalid.userRegisters = {0, 0};
     Reject([&] { EncodeComputeArtifact(invalid); });

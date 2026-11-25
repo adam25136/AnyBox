@@ -8,6 +8,7 @@ AnyBox::Shader::ComputeArtifact AnyBox::Shader::Tools::MakeArtifact(ComputeCompi
     artifact.sourceHash = source;
     std::copy(std::begin(input.threadsNum), std::end(input.threadsNum), artifact.threads.begin());
     artifact.waveSize = input.waveSize;
+    artifact.hostSubgroupSize = input.hostSubgroupSize;
     artifact.sharedMemoryBytes = input.ldsSizeDwords * 4;
     artifact.pushConstantOffset = result.bindings.pushConstantOffsetBytes;
     artifact.pushConstantSize = result.bindings.pushConstantSizeBytes;

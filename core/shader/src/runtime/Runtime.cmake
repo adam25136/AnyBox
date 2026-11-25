@@ -1,4 +1,5 @@
 add_library(anybox_shader_runtime STATIC src/runtime/ComputePipeline.cpp src/runtime/Requirements.cpp)
+target_sources(anybox_shader_runtime PRIVATE src/runtime/Workgroup.cpp)
 target_sources(anybox_shader_runtime PRIVATE src/runtime/RootResources.cpp src/runtime/RootTables.cpp)
 target_sources(anybox_shader_runtime PRIVATE src/runtime/MemoryTable.cpp)
 target_sources(anybox_shader_runtime PRIVATE src/runtime/ComputeMemory.cpp src/runtime/ComputeMemoryCommands.cpp src/runtime/ComputeFault.cpp src/runtime/ComputeBinding.cpp)

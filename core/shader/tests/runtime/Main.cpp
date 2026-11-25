@@ -79,6 +79,15 @@ void Check() {
     loaded = artifact;
     loaded.memoryOffsetCount = 1;
     reject(loaded);
+    loaded = artifact;
+    loaded.hostSubgroupSize = 64;
+    reject(loaded);
+    loaded = artifact;
+    loaded.waveSize = 64;
+    reject(loaded);
+    loaded = artifact;
+    loaded.threads[0] = 2;
+    reject(loaded);
 }
 }
 
