@@ -33,11 +33,13 @@ AnyBox::Shader::ComputeCompilation Compile(unsigned modifier, bool clamp, bool i
     auto decoded = std::ranges::find_if(frontend.GetDecoded().instructions, [](const auto& instruction) { return instruction.family == ShaderRecompiler::RdnaInstructionFamily::VOP3 && instruction.opcodeId == 0x140; });
     Fixtures::Require(decoded != frontend.GetDecoded().instructions.end() && decoded->rawWords[0] == fma[0]);
     auto state = AnyBox::Graphics::Container::ReadNativeComputeState(data);
+    state.dx10Clamp = true;
+    state.ieeeMode = ieee;
     auto target = BufferTests::Target();
     auto translated = AnyBox::Shader::LowerNativeCompute(frontend, state, ShaderRecompiler::ShaderFloatMode{0xC0, true, ieee, false}, target);
     Fixtures::Require(translated.program.Blocks().size() == frontend.GetGraph().blocks.size() + 1);
     Fixtures::Require((translated.program.Metadata().vectorWindowSize != 0) == (window != 0));
-    return AnyBox::Shader::CompileCompute(translated.program, translated.input, target, {0, 0, 0, 128});
+    return AnyBox::Shader::CompileNativeCompute(frontend, state, target, {0, 0, 0, 128});
 }
 
 std::uint32_t Expected(const std::array<std::uint32_t, 3>& words, unsigned modifier, bool clamp, bool ieee) {

@@ -43,7 +43,21 @@ void CheckNativeFloatingProfile() {
     auto data = Program(std::array<std::uint32_t, 5>{0xD5408003, 0x00080200, 0xDC708000, 0x007F0301, 0xBF810000});
     NativeFrontend frontend(data);
     auto state = AnyBox::Graphics::Container::ReadNativeComputeState(data);
-    Reject<std::runtime_error>([&] { (void)CompileNativeCompute(frontend, state, target, {0, 0, 0, 128}); });
+    std::vector<std::uint32_t> baseline;
+    bool different = false;
+    for (unsigned flags = 0; flags < 4; ++flags) {
+        Set(data, 0x114, flags);
+        state = AnyBox::Graphics::Container::ReadNativeComputeState(data);
+        auto result = CompileNativeCompute(frontend, state, target, {0, 0, 0, 128});
+        ShaderRecompiler::ShaderFloatMode mode{state.floatControl, (flags & 1) != 0, (flags & 2) != 0, false};
+        auto translated = LowerNativeCompute(frontend, state, mode, target);
+        auto explicitMode = CompileCompute(translated.program, translated.input, target, {0, 0, 0, 128});
+        Require(result.code == explicitMode.code && result.bindings.layout == explicitMode.bindings.layout);
+        CheckSpirvValidation(result.code);
+        if (flags == 0) baseline = result.code;
+        else different |= result.code != baseline;
+    }
+    Require(different);
     state.floatControl = 256;
     Reject<std::invalid_argument>([&] { (void)CompileNativeCompute(frontend, state, target, {0, 0, 0, 128}); });
 }

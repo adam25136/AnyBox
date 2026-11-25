@@ -83,9 +83,9 @@ std::string AnyBox::Shader::Tools::InspectNativeIr(std::span<const std::byte> co
     for (std::size_t index = 0; index < programs.size(); ++index) {
         auto state = Graphics::Container::ReadNativeComputeState(programs[index]);
         NativeFrontend frontend(programs[index]);
-        ShaderRecompiler::ShaderFloatMode candidate{state.floatControl, false, false, false};
-        auto lowered = LowerNativeCompute(frontend, state, candidate, AuditTarget());
-        output << "program=" << index << " candidateFloatingProfile=true\n";
+        ShaderRecompiler::ShaderFloatMode mode{state.floatControl, state.dx10Clamp, state.ieeeMode, false};
+        auto lowered = LowerNativeCompute(frontend, state, mode, AuditTarget());
+        output << "program=" << index << " floatMode=" << state.floatControl << " dx10Clamp=" << state.dx10Clamp << " ieeeMode=" << state.ieeeMode << " fp16Overflow=0\n";
         DescribeFlow(output, lowered.program);
         output << ShaderRecompiler::ProgramToString(lowered.program);
     }

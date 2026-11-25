@@ -10,6 +10,11 @@ AnyBox::Graphics::Container::NativeComputeState AnyBox::Graphics::Container::Rea
     result.resourceControl = ReadInteger(program, 0x138);
     result.declaredSharedBytes = ReadInteger(program, 0x10C);
     result.floatControl = ReadInteger(program, 0x104);
+    auto flags = std::to_integer<std::uint8_t>(program[0x114]);
+    if ((flags & ~3u) != 0) throw std::runtime_error("Xbox native compute common shader flags are not implemented");
+    if (result.floatControl > 255) throw std::invalid_argument("Xbox native compute floating mode exceeds its register field");
+    result.dx10Clamp = (flags & 1) != 0;
+    result.ieeeMode = (flags & 2) != 0;
     std::uint64_t total = 1;
     for (unsigned axis = 0; axis < 3; ++axis) {
         result.threads[axis] = ReadInteger(program, 0x13C + axis * 4);

@@ -38,6 +38,7 @@ std::vector<std::byte> Fixtures::MakeComputeProgram() {
     Set(data, 0x100, 6);
     Set(data, 0x104, 0xC0);
     Set(data, 0x10C, 513);
+    Set(data, 0x114, 1);
     Set(data, 0x138, (2 << 15) | (2 << 11) | 0x380 | 8);
     Set(data, 0x13C, 4);
     Set(data, 0x140, 2);
