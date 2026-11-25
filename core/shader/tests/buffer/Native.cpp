@@ -30,8 +30,7 @@ void Check(AnyBox::Vulkan::Context& context, unsigned scratchMask) {
     AnyBox::Shader::NativeFrontend frontend(data);
     auto state = AnyBox::Graphics::Container::ReadNativeComputeState(data);
     auto target = BufferTests::Target();
-    auto translated = AnyBox::Shader::LowerNativeCompute(frontend, state, ShaderRecompiler::ShaderFloatMode{0xC0, true, true, false}, target);
-    auto compiled = AnyBox::Shader::CompileCompute(translated.program, translated.input, target, {0, 0, 0, 128});
+    auto compiled = AnyBox::Shader::CompileNativeCompute(frontend, state, target, {0, 0, 0, 128});
     std::array<std::uint32_t, 32> expected{};
     for (unsigned index = 0; index < expected.size(); ++index) expected[index] = index;
     BufferTests::RunGpu(context, compiled, expected, {1, 1, 1});

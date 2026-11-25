@@ -5,6 +5,7 @@
 #include <utility>
 
 void CheckNativeCompute();
+void CheckNativeFloatingProfile();
 void CheckNativeFlow();
 void CheckNativeScratchWrites();
 void CheckNativeImages();
@@ -19,6 +20,7 @@ void CheckBallotLoopGuards();
 int main() {
     return AnyBox::Tests::Run([] {
         CheckNativeCompute();
+        CheckNativeFloatingProfile();
         CheckNativeFlow();
         CheckNativeScratchWrites();
         CheckNativeImages();

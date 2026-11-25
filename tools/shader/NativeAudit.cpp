@@ -59,21 +59,21 @@ std::size_t AnyBox::Shader::Tools::AuditNative(std::span<const std::byte> contai
     Graphics::Container::DxbcView outer(container);
     Graphics::Container::DxilView header(outer.FindPart(0x4C495844)->data);
     bool compute = (header.GetProgramVersion() >> 16) == 5;
+    std::size_t words = 0;
     for (std::size_t index = 0; index < programs.size(); ++index) {
         try {
             if (compute) {
                 auto state = Graphics::Container::ReadNativeComputeState(programs[index]);
                 NativeFrontend frontend(programs[index]);
-                ShaderRecompiler::ShaderFloatMode candidate{state.floatControl, false, false, false};
                 auto target = AuditTarget();
-                auto lowered = LowerNativeCompute(frontend, state, candidate, target);
-                auto compiled = CompileCompute(lowered.program, lowered.input, target, {0, 0, 0, 128});
+                auto compiled = CompileNativeCompute(frontend, state, target, {0, 0, 0, 128});
                 if (compiled.code.size() < 5 || compiled.code.front() != 0x07230203) throw std::runtime_error("Native compute compiler returned invalid SPIR-V framing");
+                words += compiled.code.size();
             } else (void)Decode(programs[index]);
         }
         catch (const std::exception& error) { throw std::runtime_error("Native program " + std::to_string(index) + ": " + error.what()); }
     }
-    if (compute) throw std::runtime_error("Native compute SPIR-V generated with a candidate floating profile; initial floating flags are not verified");
+    if (compute) return words;
     throw std::runtime_error("Xbox native stage parameters frontend is not implemented");
 }
 
