@@ -3,7 +3,7 @@
 #include "../buffer/Target.hpp"
 
 namespace {
-void CheckBarrier(std::uint32_t opcode, std::uint32_t mode) {
+void CheckBarrier(std::uint32_t opcode, std::uint32_t mode, unsigned wave = 32) {
     using namespace ShaderRecompiler;
     FlowTests::Fixture fixture;
     auto* block = fixture.Block();
@@ -23,7 +23,8 @@ void CheckBarrier(std::uint32_t opcode, std::uint32_t mode) {
     ShaderComputeInputInfo input;
     input.threadsNum[0] = 64;
     input.threadsNum[1] = input.threadsNum[2] = 1;
-    input.waveSize = input.hostSubgroupSize = 32;
+    input.waveSize = wave;
+    input.hostSubgroupSize = 32;
     auto shader = AnyBox::Shader::CompileCompute(program, input, BufferTests::Target(), {0, 0, 0, 128});
     std::unordered_map<std::uint32_t, std::uint32_t> constants;
     unsigned barriers = 0;
@@ -54,6 +55,7 @@ void CheckBarrier(std::uint32_t opcode, std::uint32_t mode) {
 
 void FlowTests::CheckBarriers() {
     for (unsigned mode = 0; mode <= 16; ++mode) CheckBarrier(80, mode);
+    for (unsigned mode = 1; mode <= 15; ++mode) CheckBarrier(80, mode, 64);
     CheckBarrier(80, UINT32_MAX);
     CheckBarrier(79, 9);
 }

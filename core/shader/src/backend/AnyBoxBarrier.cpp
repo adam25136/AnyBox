@@ -10,7 +10,8 @@ void AnyBox::Shader::Backend::EmitDxilBarrier(ShaderRecompiler::SpirvValueEmitCo
     }
     if ((flags & DxilBarrierTag) == 0 || (flags & ~(DxilBarrierTag | 15)) != 0 || (flags & 15) == 0) context.Fail(instruction, "has invalid DXIL barrier flags");
     auto& state = context.state;
-    if (state.program.Resources().stage != ShaderRecompiler::IrShaderStage::Compute || state.laneCount != 1) context.Fail(instruction, "requires a native compute wave for a DXIL barrier");
+    if (state.program.Resources().stage != ShaderRecompiler::IrShaderStage::Compute || (state.laneCount != 1 && state.laneCount != 2)) context.Fail(instruction, "requires a supported compute wave for a DXIL barrier");
+    if (context.half != 0) return;
     auto mode = static_cast<std::uint32_t>(flags & 15);
     auto scope = mode & 2 ? spv::ScopeDevice : spv::ScopeWorkgroup;
     std::uint32_t semantics = 0;
