@@ -1,4 +1,5 @@
 #include <anybox/shader/NativePixel.hpp>
+#include <anybox/shader/NativeLinkage.hpp>
 #include "../buffer/Target.hpp"
 #include "NativeFixtures.hpp"
 #include <array>
@@ -17,9 +18,41 @@ std::vector<std::byte> PixelProgram(bool wide) {
     for (std::size_t index = 0; index < instructions.size(); ++index) Fixtures::Set(data, 0x168 + index * 4, instructions[index]);
     return data;
 }
+
+void CheckLinkedPixel() {
+    using namespace AnyBox::Shader;
+    using namespace AnyBox::Graphics::Container;
+    auto data = PixelProgram(false);
+    for (std::size_t offset = 0x168; offset < data.size(); offset += 4) Fixtures::Set(data, offset, 0xBF9F0000);
+    constexpr std::array<std::uint32_t, 4> instructions{0xC8020002, 0xF8001801, 0, 0xBF810000};
+    for (std::size_t index = 0; index < instructions.size(); ++index) Fixtures::Set(data, 0x168 + index * 4, instructions[index]);
+    NativePixelInputs pixel;
+    pixel.count = 1;
+    pixel.attributes[0] = {6, 7, 1, 1};
+    NativeVertexOutputs vertex;
+    vertex.count = 3;
+    vertex.parameters = {{{6, 2}, {6, 4}, {6, 7}}};
+    ShaderRecompiler::ShaderPixelInputInfo input;
+    input.targetOutputMode[0] = 1;
+    LinkNativePixelAttributes(input, pixel, vertex);
+    auto compiled = CompileNativePixel(data, input, 0, BufferTests::Target(), {0, 0, 0, 128});
+    CheckSpirvValidation(compiled.code);
+    bool flat = false;
+    bool location = false;
+    for (std::size_t offset = 5; offset < compiled.code.size();) {
+        auto count = compiled.code[offset] >> 16;
+        auto opcode = compiled.code[offset] & 65535;
+        Fixtures::Require(count != 0 && count <= compiled.code.size() - offset);
+        if (opcode == 71 && count >= 3 && compiled.code[offset + 2] == 14) flat = true;
+        if (opcode == 71 && count >= 4 && compiled.code[offset + 2] == 30 && compiled.code[offset + 3] == 2) location = true;
+        offset += count;
+    }
+    Fixtures::Require(flat && location);
+}
 }
 
 void CheckNativePixel() {
+    CheckLinkedPixel();
     using namespace AnyBox::Shader;
     using namespace ShaderRecompiler;
     using namespace Fixtures;

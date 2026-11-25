@@ -6,6 +6,7 @@
 
 void CheckNativeCompute();
 void CheckNativePixel();
+void CheckNativeLinkage();
 void CheckNativeFloatingProfile();
 void CheckNativeRootArguments();
 void CheckNativeFlow();
@@ -23,6 +24,7 @@ int main() {
     return AnyBox::Tests::Run([] {
         CheckNativeCompute();
         CheckNativePixel();
+        CheckNativeLinkage();
         CheckNativeFloatingProfile();
         CheckNativeRootArguments();
         CheckNativeFlow();
