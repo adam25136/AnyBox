@@ -12,6 +12,17 @@
 
 namespace AnyBox::Vulkan {
 using AdapterLuid = std::array<std::byte, VK_LUID_SIZE>;
+
+class AdapterNotFound : public std::out_of_range {
+public:
+    using std::out_of_range::out_of_range;
+};
+
+class AdapterIncompatible : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
+
 class Context {
 public:
     explicit Context(std::uint32_t adapterIndex, std::uint32_t queueCount = 1);

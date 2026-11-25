@@ -1,12 +1,7 @@
 #include "Tests.hpp"
+#include "../../src/host/Com.hpp"
 #include <anybox/platform/WindowsError.hpp>
-#include <memory>
-
-namespace {
-struct Release {
-    void operator()(ID3D12Device* value) const noexcept { value->Release(); }
-};
-}
+#include <anybox/vulkan/Context.hpp>
 
 void AnyBox::Graphics::Tests::CheckProperties(Device* device) {
     constexpr GUID HostId{0x189819F1, 0x1DB6, 0x4B57, {0xBE, 0x54, 0x18, 0x21, 0x33, 0x9B, 0x85, 0xF7}};
@@ -17,11 +12,21 @@ void AnyBox::Graphics::Tests::CheckProperties(Device* device) {
     PFN_D3D12_CREATE_DEVICE create;
     std::memcpy(&create, &address, sizeof(create));
     void* native = nullptr;
-    Require(create(nullptr, D3D_FEATURE_LEVEL_12_0, HostId, &native) == 0 && native, "Reference D3D12 device creation failed");
-    std::unique_ptr<ID3D12Device, Release> host(static_cast<ID3D12Device*>(native));
+    auto result = create(nullptr, D3D_FEATURE_LEVEL_12_0, HostId, &native);
+    ComOwner<ID3D12Device> defaultDevice(static_cast<ID3D12Device*>(native));
+    Require(result == S_OK && defaultDevice, "Reference D3D12 device creation failed");
+
+    auto* host = device->GetHost();
     auto luid = Method<decltype(&Device::GetAdapterLuid)>(device, 43)(device);
     auto expectedLuid = host->GetAdapterLuid();
     Require(luid.LowPart == expectedLuid.LowPart && luid.HighPart == expectedLuid.HighPart, "Adapter identity changed across the Xbox ABI");
+    auto defaultLuid = defaultDevice->GetAdapterLuid();
+    if (defaultLuid.LowPart != luid.LowPart || defaultLuid.HighPart != luid.HighPart) {
+        Vulkan::AdapterLuid bytes{};
+        static_assert(sizeof(defaultLuid) == sizeof(bytes));
+        std::memcpy(bytes.data(), &defaultLuid, bytes.size());
+        Reject<Vulkan::AdapterNotFound>([&] { Vulkan::Context context(bytes, 5); });
+    }
     Require(Method<decltype(&Device::GetDeviceRemovedReason)>(device, 37)(device) == host->GetDeviceRemovedReason(), "Graphics device removal status differs from the host");
     auto count = Method<decltype(&Device::GetNodeCount)>(device, 7);
     Require(count(device) == host->GetNodeCount() && count(device) > 0, "Xbox graphics node count differs from its host");
