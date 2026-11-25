@@ -18,6 +18,11 @@ std::array<ShaderRecompiler::IrValue*, 2> AnyBox::Shader::Dxil::ReadWordPair(con
     auto* aggregate = LLVMBC::dyn_cast<LLVMBC::ConstantAggregate>(&source);
     auto* composite = LLVMBC::dyn_cast<LLVMBC::CompositeConstructInst>(&source);
     bool zero = LLVMBC::isa<LLVMBC::ConstantAggregateZero>(&source);
+    if (LLVMBC::isa<LLVMBC::CallInst>(&source)) {
+        auto& value = scalar.Get(source);
+        if (value.Type() != ShaderRecompiler::IrType::Vec2U32) throw std::runtime_error("Xbox word pair call returned an incompatible IR type");
+        return {&builder.CompositeExtract(value, 0), &builder.CompositeExtract(value, 1)};
+    }
     if (vector && vector->getNumElements() != 2) throw std::runtime_error("Xbox constant word pair has an invalid element count");
     if (array && array->getNumElements() != 2) throw std::runtime_error("Xbox constant array word pair has an invalid element count");
     if (aggregate && aggregate->getNumOperands() != 2) throw std::runtime_error("Xbox aggregate word pair has an invalid element count");

@@ -9,6 +9,7 @@
 #include "LaneSwizzle.hpp"
 #include "ConditionalMask.hpp"
 #include "ReadLane.hpp"
+#include "BitCount.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -47,6 +48,7 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "xbox.V_CNDMASK_B32") return LowerConditionalMask(instruction, *this, builder, program);
     if (identifier == "xbox.ReadLane.i32") return LowerReadLane(instruction, *this, builder, program);
     if (identifier == "xbox.GetLaneID") return waveBuiltin(instruction, 64);
+    if (identifier == "xbox.S_BCNT1_U64") return LowerBitCount64(instruction, *this, builder);
     if (identifier == "dx.op.dot2.f32") return floatDot(instruction, 2);
     if (identifier == "dx.op.dot3.f32") return floatDot(instruction, 3);
     if (identifier == "dx.op.dot4.f32") return floatDot(instruction, 4);
