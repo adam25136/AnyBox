@@ -18,11 +18,12 @@ IrValue& AnyBox::Shader::Dxil::LowerUnaryFloat(const LLVMBC::CallInst& instructi
     auto* opcode = LLVMBC::dyn_cast<LLVMBC::ConstantInt>(instruction.getArgOperand(0));
     if (!opcode || !opcode->getType()->isIntegerTy() || opcode->getType()->getIntegerBitWidth() != 32) throw std::runtime_error("DXIL floating unary intrinsic requires a constant 32-bit opcode");
     auto mode = opcode->getUniqueInteger().getZExtValue();
-    if (mode != 6 && mode != 7 && mode != 22 && mode != 28) throw std::runtime_error("DXIL floating unary intrinsic mode is not implemented");
+    if (mode != 6 && mode != 7 && mode != 22 && mode != 25 && mode != 28) throw std::runtime_error("DXIL floating unary intrinsic mode is not implemented");
     auto& input = scalar.Get(*instruction.getArgOperand(1));
     if (mode == 6) return builder.BitCastF32(builder.BitwiseAnd(builder.BitCastU32(input), builder.Constant(0x7FFFFFFF)));
 
     auto& value = FlushFloat32(builder, input);
+    if (mode == 25) return ReciprocalSqrt32(builder, value);
     if (mode == 7) return builder.Emit(IrOpcode::FPSaturate32, IrType::F32, {&value});
     if (mode == 28) return builder.Emit(IrOpcode::FPCeil32, IrType::F32, {&value});
     auto& fraction = builder.Emit(IrOpcode::FPFract32, IrType::F32, {&value});

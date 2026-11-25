@@ -11,6 +11,7 @@ target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/FloatMinMax3.cp
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/GlobalConstants.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/PrivateGlobals.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/FloatBits.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/ReciprocalSqrt.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Barriers.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/AddressLoads.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/IntegerTernary.cpp)

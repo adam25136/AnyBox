@@ -3,7 +3,7 @@
 #include "AtomicKernel.hpp"
 
 namespace BufferTests {
-inline ShaderRecompiler::IrProgram MakeFloatBitsKernel(unsigned mode) {
+inline ShaderRecompiler::IrProgram MakeFloatBitsKernel(unsigned mode, bool linear = false) {
     using namespace ShaderRecompiler;
     AtomicKernel fixture;
     auto& context = fixture.source.Context();
@@ -15,7 +15,7 @@ inline ShaderRecompiler::IrProgram MakeFloatBitsKernel(unsigned mode) {
     if (mode != 0) arguments.push_back(LLVMBC::ConstantInt::get(word, mode));
     for (unsigned operand = 0; operand < (mode == 0 ? 2u : 1u); ++operand) {
         auto& base = operand == 0 ? builder.ShiftRightLogical(index, builder.Constant(4)) : index;
-        auto& selected = builder.BitwiseAnd(base, builder.Constant(15));
+        auto& selected = linear ? index : builder.BitwiseAnd(base, builder.Constant(15));
         auto& offset = builder.ShiftLeftLogical(selected, builder.Constant(2));
         auto& value = builder.BitCastF32(fixture.Memory(IrOpcode::LoadAddressU32, offset, 1));
         auto* argument = context.construct<LLVMBC::Argument>(floating, operand, false);

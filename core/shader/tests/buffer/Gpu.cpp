@@ -3,6 +3,7 @@
 #include "Commands.hpp"
 #include "Fixtures.hpp"
 #include "Target.hpp"
+#include "GpuValues.hpp"
 #include <anybox/vulkan/ComputePipeline.hpp>
 #include <anybox/shader/runtime/MemoryTable.hpp>
 #include <BdaAbi.hpp>
@@ -11,14 +12,14 @@
 #include <vector>
 
 namespace BufferTests {
-void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::ComputeCompilation& shader, std::span<const std::uint32_t> expected, const std::array<std::uint32_t, 3>& groups, std::span<const std::byte> inputData, std::span<const std::uint32_t> userData, std::span<const std::byte> outputData) {
+std::vector<std::uint32_t> ReadGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::ComputeCompilation& shader, std::size_t count, const std::array<std::uint32_t, 3>& groups, std::span<const std::byte> inputData, std::span<const std::uint32_t> userData, std::span<const std::byte> outputData) {
     namespace Abi = ShaderRecompiler::BdaAbi;
     using namespace AnyBox::Vulkan;
     if (!context.SupportsByteStorage()) throw std::runtime_error("DXIL BDA test requires Vulkan byte storage support");
     constexpr auto usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
     constexpr auto properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     auto input = std::make_shared<Buffer>(Buffer::Allocate(context, std::max<std::size_t>(64, inputData.size()), usage, properties));
-    auto output = std::make_shared<Buffer>(Buffer::Allocate(context, expected.size_bytes(), usage, properties));
+    auto output = std::make_shared<Buffer>(Buffer::Allocate(context, count * sizeof(std::uint32_t), usage, properties));
     auto faults = Buffer::Allocate(context, Abi::FaultBufferBytes, usage, properties);
     AnyBox::Graphics::Buffers::AddressSpace addresses;
     auto outputPermissions = Abi::Write | (outputData.empty() ? 0 : Abi::Read);
@@ -69,15 +70,19 @@ void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::Comput
     Abi::Fault fault{};
     std::memcpy(&fault, faults.Map().data(), sizeof(fault));
     if (fault.state != Abi::FaultState::Empty) throw std::runtime_error("DXIL BDA GPU test recorded fault " + std::to_string(static_cast<unsigned>(fault.reason)));
+    std::vector<std::uint32_t> values(count);
+    std::memcpy(values.data(), output->Map().data(), values.size() * sizeof(std::uint32_t));
+    return values;
+}
+
+void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::ComputeCompilation& shader, std::span<const std::uint32_t> expected, const std::array<std::uint32_t, 3>& groups, std::span<const std::byte> inputData, std::span<const std::uint32_t> userData, std::span<const std::byte> outputData) {
+    auto values = ReadGpu(context, shader, expected.size(), groups, inputData, userData, outputData);
     for (std::size_t index = 0; index < expected.size(); ++index) {
-        std::uint32_t value = 0;
-        std::memcpy(&value, output->Map().data() + index * sizeof(value), sizeof(value));
+        auto value = values[index];
         if (value != expected[index]) {
             std::string first;
             for (std::size_t word = 0; word < 3 && word < expected.size(); ++word) {
-                std::uint32_t observed = 0;
-                std::memcpy(&observed, output->Map().data() + word * sizeof(observed), sizeof(observed));
-                first += " " + std::to_string(observed);
+                first += " " + std::to_string(values[word]);
             }
             throw std::runtime_error("DXIL GPU result mismatch at " + std::to_string(index) + ": " + std::to_string(value) + " != " + std::to_string(expected[index]) + "; first words:" + first);
         }
