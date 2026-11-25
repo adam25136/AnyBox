@@ -75,6 +75,11 @@ void AnyBox::Shader::BindNativeRootArguments(NativeComputeTranslation& translati
     for (const auto& block : program.Blocks()) {
         for (auto* value : block->Instructions()) {
             if (originalIds.contains(value->Id())) throw std::runtime_error("Native initial user data remains outside the logical root argument mapping");
+            if (BufferAccessOf(value->Opcode()) != BufferAccess::None) {
+                auto& memory = program.Resources().memoryInfo.at(value->Flags<MemoryFlags>().index);
+                if (memory.kind == ResourceKind::ScalarBuffer) throw std::runtime_error("Native scalar buffer root argument accesses are not implemented");
+                if (memory.kind == ResourceKind::Buffer) memory.gpuDescriptor = true;
+            }
             if (value->Opcode() == IrOpcode::LoadAddressU32) {
                 auto& memory = program.Resources().memoryInfo.at(value->Flags<MemoryFlags>().index);
                 if (memory.kind == ResourceKind::ScalarAddress) memory.kind = ResourceKind::Global;

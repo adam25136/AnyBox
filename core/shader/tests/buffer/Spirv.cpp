@@ -15,6 +15,7 @@ void CheckSpannedRuntime(AnyBox::Vulkan::Context& context);
 void CheckHalfCasts(AnyBox::Vulkan::Context& context);
 void CheckHalfMemory(AnyBox::Vulkan::Context& context);
 void CheckHalfExtrema(AnyBox::Vulkan::Context& context);
+void CheckNativeBuffers(AnyBox::Vulkan::Context& context);
 
 namespace BufferTests {
 void CheckGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::ComputeCompilation& shader, std::uint32_t expected);
@@ -114,6 +115,7 @@ void BufferTests::CheckSpirv() {
     CheckUnaryBitsGpu(context);
     CheckNativeGpu(context);
     CheckNativeArguments(context);
+    CheckNativeBuffers(context);
     CheckNativeFma(context);
     CheckFirstLaneGpu(context);
     CheckBallotLoopGpu(context);

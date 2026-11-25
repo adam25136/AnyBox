@@ -1,0 +1,6 @@
+function(anybox_adapt_shader_gpu_buffers target root)
+    set(original "${root}/Optimization/src/ResourceTracker.cpp")
+    file(READ "${original}" content)
+    anybox_replace_shader_text(content "if (ValidateSource(descriptor, badDword)) {\n            const auto source = InternSource(descriptor);" "if (!memory.gpuDescriptor && ValidateSource(descriptor, badDword)) {\n            const auto source = InternSource(descriptor);")
+    anybox_overlay_shader_source(${target} "${original}" "${content}")
+endfunction()
