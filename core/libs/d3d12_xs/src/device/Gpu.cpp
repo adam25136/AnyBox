@@ -1,4 +1,5 @@
 #include "Device.hpp"
+#include "../pagepool/Registry.hpp"
 #include <anybox/vulkan/Context.hpp>
 #include <anybox/vulkan/Buffer.hpp>
 #include <algorithm>
@@ -15,7 +16,9 @@ AnyBox::Graphics::Device::Device(ID3D12Device* host, const D3D12XboxCreateDevice
     std::ranges::fill(zero->Map(), std::byte{});
     auto address = zero->GetAddress();
     if (address == 0 || address > 0xFFFFFFFFFFFFULL || address % 16 != 0) throw std::runtime_error("Vulkan null constant buffer address cannot be encoded in an Xbox descriptor");
+    auto* pools = &GetProcessPagePools();
     host->AddRef();
+    pagePools = pools;
     gpuContext = created.release();
     nullConstantAddress = address;
     nullConstantBuffer = zero.release();

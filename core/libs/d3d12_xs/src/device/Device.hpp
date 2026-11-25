@@ -9,6 +9,7 @@
 #include "../object/Properties.hpp"
 #include "Interfaces.hpp"
 #include "../frame/Configuration.hpp"
+#include "../queue/Slots.hpp"
 #include <array>
 #include <atomic>
 #include <cstring>
@@ -42,6 +43,7 @@ struct XboxListDescription;
 struct XboxShaderViewDescription;
 class DxgiDevice;
 class FrameClock;
+class PagePools;
 struct FrameAncillary;
 GUID NativeGuid(const Guid& value);
 void CheckGraphicsResult(HRESULT result, const char* operation);
@@ -61,21 +63,11 @@ public:
     Texture::AddressSpace& GetTextureAddresses() noexcept { return textureAddresses; }
     Buffers::AddressSpace& GetBufferAddresses() noexcept { return bufferAddresses; }
     Buffers::AddressSpace& GetDescriptorAddresses() noexcept { return descriptorAddresses; }
-    std::uint32_t AcquireGpuQueue() {
-        auto count = gpuContext->GetQueueCount();
-        if (count == 0 || count > 32) throw std::logic_error("Vulkan queue count cannot be represented by the device allocator");
-        auto available = count == 32 ? UINT32_MAX : (1u << count) - 1;
-        auto used = gpuQueues.load(std::memory_order_relaxed);
-        for (;;) {
-            auto free = available & ~used;
-            if (free == 0) throw std::runtime_error("No independent Vulkan queue is available");
-            auto index = static_cast<std::uint32_t>(std::countr_zero(free));
-            if (gpuQueues.compare_exchange_weak(used, used | (1u << index), std::memory_order_acq_rel)) return index;
-        }
-    }
-    void ReleaseGpuQueue(std::uint32_t index) noexcept {
-        if (index >= gpuContext->GetQueueCount() || (gpuQueues.fetch_and(~(1u << index), std::memory_order_release) & (1u << index)) == 0) std::terminate();
-    }
+    std::uint32_t AcquireGpuQueue() { return gpuQueueSlots.Acquire(gpuContext->GetQueueCount()); }
+    void ReleaseGpuQueue(std::uint32_t index) noexcept { gpuQueueSlots.Release(gpuContext->GetQueueCount(), index); }
+    PagePools& GetPagePools() noexcept { return *pagePools; }
+    static HRESULT RegisterPagePoolX(Device* self, std::uint64_t address, std::uint32_t count, std::uint64_t* handle);
+    static HRESULT UnregisterPagePoolX(Device* self, std::uint64_t handle);
     bool Matches(const D3D12XboxCreateDeviceParameters& value) const noexcept;
     static std::uint32_t TryAddRef(Device* self);
     static std::uint32_t GetNodeCount(Device* self);
@@ -120,7 +112,7 @@ private:
     const DeviceTable* vtable;
     std::atomic<std::uint32_t> references{1};
     std::atomic<std::uint32_t> computeQueues{0};
-    std::atomic<std::uint32_t> gpuQueues{0};
+    GpuQueueSlots gpuQueueSlots;
     ID3D12Device* host;
     D3D12XboxCreateDeviceParameters parameters;
     std::mutex dxgiMutex;
@@ -128,6 +120,7 @@ private:
     mutable std::mutex frameMutex;
     FrameConfiguration frameConfiguration;
     FrameClock* frameClock = nullptr;
+    PagePools* pagePools = nullptr;
     Vulkan::Context* gpuContext = nullptr;
     Vulkan::Buffer* nullConstantBuffer = nullptr;
     std::uint64_t nullConstantAddress = 0;

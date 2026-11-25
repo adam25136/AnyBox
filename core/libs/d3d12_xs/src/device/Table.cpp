@@ -46,6 +46,8 @@ AnyBox::Graphics::DeviceTable MakeTable(std::index_sequence<TSlots...>) {
     result[62] = MethodAddress(&Device::CreateComputePipelineStateX);
     result[70] = MethodAddress(&Device::CreateShaderResourceViewX);
     result[73] = MethodAddress(&Device::CreateCommandListX);
+    result[74] = MethodAddress(&Device::RegisterPagePoolX);
+    result[75] = MethodAddress(&Device::UnregisterPagePoolX);
     result[78] = MethodAddress(&Device::SetFrameIntervalX);
     result[79] = MethodAddress(&Device::ScheduleFrameEventX);
     result[80] = MethodAddress(&Device::WaitFrameEventX);

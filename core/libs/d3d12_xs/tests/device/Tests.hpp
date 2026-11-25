@@ -63,6 +63,7 @@ void CheckFrameEvents(Device* device);
 void CheckFrameAncillary(Device* device);
 void CheckUnsupportedDeviceMethods(Device* device);
 void CheckPhysicalHeap(Device* device);
+void CheckPagePools(Device* device);
 void CheckPlacedBuffer(Device* device);
 void CheckShaderBufferArguments(Device* device, Resource* resource);
 void CheckDescriptorHeaps(Device* device);

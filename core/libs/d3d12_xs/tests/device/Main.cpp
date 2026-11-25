@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
             CheckPreparedDispatch(device);
             CheckSynchronization(device);
             CheckPhysicalHeap(device);
+            CheckPagePools(device);
             CheckPlacedBuffer(device);
             CheckDescriptorHeaps(device);
             CheckSamplers(device);
