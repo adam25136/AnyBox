@@ -12,6 +12,7 @@
 #include "BitCount.hpp"
 #include "FirstLane.hpp"
 #include "HalfPack.hpp"
+#include "UnaryInteger.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -79,6 +80,9 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "dx.op.flattenedThreadIdInGroup.i32") return thread(instruction, 96);
     if (identifier == "dx.op.tertiary.i32") return bitField(instruction, false);
     if (identifier == "dx.op.unaryBits.i32") return unaryBits(instruction);
+    if (identifier == "dx.op.unaryBits.i64") return LowerUnaryInteger(instruction, *this, builder, 64, false);
+    if (identifier == "dx.op.unary.i32") return LowerUnaryInteger(instruction, *this, builder, 32, true);
+    if (identifier == "dx.op.unary.i64") return LowerUnaryInteger(instruction, *this, builder, 64, true);
     if (identifier == "dx.op.quaternary.i32") return bitField(instruction, true);
     if (identifier == "xbox.global_load_dword_with_cache") return globalLoad(instruction, 1);
     if (identifier == "xbox.s_load_dword_with_cache") return LowerAddressLoad(instruction, *this, builder, program, 1, 364);

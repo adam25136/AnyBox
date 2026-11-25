@@ -10,9 +10,8 @@ IrValue& ScalarLowering::unaryBits(const LLVMBC::CallInst& instruction) {
     auto* opcode = LLVMBC::dyn_cast<LLVMBC::ConstantInt>(instruction.getArgOperand(0));
     if (!opcode) throw std::runtime_error("DXIL unary bit operation requires a constant opcode");
     auto operation = opcode->getUniqueInteger().getZExtValue();
-    if (operation < 30 || operation > 34) throw std::runtime_error("DXIL unary bit operation is not implemented: " + std::to_string(operation));
+    if (operation < 31 || operation > 34) throw std::runtime_error("DXIL unary bit operation is not implemented: " + std::to_string(operation));
     auto& value = Get(*instruction.getArgOperand(1));
-    if (operation == 30) return builder.Emit(IrOpcode::BitReverse32, IrType::U32, {&value});
     if (operation == 31) return builder.Emit(IrOpcode::BitCount32, IrType::U32, {&value});
     if (operation == 32) return builder.Emit(IrOpcode::FindILsb32, IrType::U32, {&value});
 

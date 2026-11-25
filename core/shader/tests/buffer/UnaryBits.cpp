@@ -1,6 +1,8 @@
 #include "FloatFixture.hpp"
 #include <bit>
 
+void CheckWideUnaryGpu(AnyBox::Vulkan::Context& context);
+
 namespace {
 std::uint32_t Expected(unsigned opcode, std::uint32_t value) {
     if (opcode == 30) {
@@ -20,9 +22,10 @@ void CheckBatch(AnyBox::Vulkan::Context& context, const std::array<std::uint32_t
     for (unsigned index = 0; index < input.size(); ++index) {
         auto* value = fixture.Make<LLVMBC::CastInst>(word, fixture.Argument(index), LLVMBC::Instruction::BitCast);
         for (unsigned opcode = 30; opcode <= 34; ++opcode) {
-            auto* call = fixture.Call("dx.op.unaryBits.i32", word, {fixture.Integer(32, opcode), value});
+            auto* name = opcode == 30 ? "dx.op.unary.i32" : "dx.op.unaryBits.i32";
+            auto* call = fixture.Call(name, word, {fixture.Integer(32, opcode), value});
             fixture.Expect(*call, Expected(opcode, input[index]));
-            auto* constant = fixture.Call("dx.op.unaryBits.i32", word, {fixture.Integer(32, opcode), fixture.Integer(32, input[index])});
+            auto* constant = fixture.Call(name, word, {fixture.Integer(32, opcode), fixture.Integer(32, input[index])});
             fixture.Expect(*constant, Expected(opcode, input[index]));
         }
     }
@@ -40,6 +43,7 @@ void CheckInvalid() {
     reject(word, {fixture.Integer(32, 31), fixture.Integer(64, 1)});
     reject(word, {fixture.Integer(16, 31), fixture.Integer(32, 1)});
     reject(word, {fixture.Integer(32, 29), fixture.Integer(32, 1)});
+    reject(word, {fixture.Integer(32, 30), fixture.Integer(32, 1)});
     reject(word, {fixture.Integer(32, 35), fixture.Integer(32, 1)});
     reject(fixture.IntegerType(64), {fixture.Integer(32, 31), fixture.Integer(32, 1)});
     auto* dynamic = fixture.Make<LLVMBC::CastInst>(word, fixture.Argument(0), LLVMBC::Instruction::BitCast);
@@ -49,6 +53,7 @@ void CheckInvalid() {
 
 void BufferTests::CheckUnaryBitsGpu(AnyBox::Vulkan::Context& context) {
     CheckInvalid();
+    CheckWideUnaryGpu(context);
     std::array<std::uint32_t, 16> input{0, 1, UINT32_MAX, 0x80000000, 0x7FFFFFFF, 0xFFFFFFFE, 0xAAAAAAAA, 0x55555555, 0x12345678, 0xDEADBEEF, 16, 31, 32, 33, 63, 64};
     CheckBatch(context, input);
     for (unsigned batch = 0; batch < 4; ++batch) {
