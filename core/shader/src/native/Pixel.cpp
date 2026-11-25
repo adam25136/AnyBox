@@ -2,6 +2,7 @@
 #include "Options.hpp"
 #include "Optimize.hpp"
 #include "Slices.hpp"
+#include "Buffers.hpp"
 #include <Optimization/SsaBuilder.hpp>
 
 ShaderRecompiler::IrProgram AnyBox::Shader::LowerNativePixel(const NativeFrontend& frontend, const Graphics::Container::NativeStageState& state, const ShaderRecompiler::ShaderPixelInputInfo& input, std::uint32_t userRegisters, const ShaderRecompiler::SpirvTargetOptions& target) {
@@ -16,6 +17,7 @@ ShaderRecompiler::IrProgram AnyBox::Shader::LowerNativePixel(const NativeFronten
     auto result = TranslateNativeProgram(frontend.GetDecoded(), frontend.GetGraph(), options);
     SsaBuilder{}.Rewrite(result);
     OptimizeNativeProgram(result, frontend.GetWaveSize());
+    MarkNativeBufferDescriptors(result);
     return result;
 }
 

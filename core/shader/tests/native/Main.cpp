@@ -7,6 +7,7 @@
 void CheckNativeCompute();
 void CheckNativePixel();
 void CheckNativeLinkage();
+void CheckNativeVertex();
 void CheckNativeFloatingProfile();
 void CheckNativeRootArguments();
 void CheckNativeFlow();
@@ -25,6 +26,7 @@ int main() {
         CheckNativeCompute();
         CheckNativePixel();
         CheckNativeLinkage();
+        CheckNativeVertex();
         CheckNativeFloatingProfile();
         CheckNativeRootArguments();
         CheckNativeFlow();
