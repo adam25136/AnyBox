@@ -4,7 +4,7 @@
 #include <optional>
 
 namespace BufferTests {
-inline ShaderRecompiler::IrProgram MakeIntegerWaveKernel(unsigned waveSize, bool prefix, std::uint32_t mask, unsigned signedness = 1, bool dxilFlow = false, unsigned bits = 32, std::optional<std::uint64_t> constantValue = {}) {
+inline ShaderRecompiler::IrProgram MakeIntegerWaveKernel(unsigned waveSize, bool prefix, std::uint32_t mask, unsigned signedness = 1, bool dxilFlow = false, unsigned bits = 32, std::optional<std::uint64_t> constantValue = {}, bool minimum = false) {
     using namespace ShaderRecompiler;
     AtomicKernel fixture;
     auto& program = fixture.program;
@@ -12,7 +12,7 @@ inline ShaderRecompiler::IrProgram MakeIntegerWaveKernel(unsigned waveSize, bool
     auto& builder = fixture.builder;
     auto& index = fixture.GlobalIndex();
     auto& lane = builder.Emit(IrOpcode::LaneId, IrType::U32, {});
-    auto& offset = builder.ShiftLeftLogical(builder.BitwiseAnd(lane, builder.Constant(bits == 64 ? 7 : 15)), builder.Constant(bits == 64 ? 3 : 2));
+    auto& offset = builder.ShiftLeftLogical(builder.BitwiseAnd(lane, builder.Constant(minimum ? 63 : bits == 64 ? 7 : 15)), builder.Constant(bits == 64 ? 3 : 2));
     auto& low = constantValue ? builder.Constant(static_cast<std::uint32_t>(*constantValue)) : fixture.Memory(IrOpcode::LoadAddressU32, offset, 1);
     auto& high = constantValue ? builder.Constant(static_cast<std::uint32_t>(*constantValue >> 32)) : bits == 64 ? fixture.Memory(IrOpcode::LoadAddressU32, builder.IAdd(offset, builder.Constant(4)), 1) : builder.Constant(0);
     auto& input = bits == 64 ? builder.ConstructU64(low, high) : low;
@@ -50,11 +50,17 @@ inline ShaderRecompiler::IrProgram MakeIntegerWaveKernel(unsigned waveSize, bool
     auto* resultType = LLVMBC::Type::getIntTy(context, bits);
     auto* argument = context.construct<LLVMBC::Argument>(resultType, 0, false);
     fixture.scalar.Bind(*argument, input);
-    symbols.add_value_name(119, bits == 64 ? prefix ? "dx.op.wavePrefixOp.i64" : "dx.op.waveActiveOp.i64" : prefix ? "dx.op.wavePrefixOp.i32" : "dx.op.waveActiveOp.i32");
-    auto* signature = context.construct<LLVMBC::FunctionType>(context, resultType, LLVMBC::Vector<LLVMBC::Type*>{word, resultType, byte, byte});
+    symbols.add_value_name(119, minimum ? "xbox.WaveMin_U32" : bits == 64 ? prefix ? "dx.op.wavePrefixOp.i64" : "dx.op.waveActiveOp.i64" : prefix ? "dx.op.wavePrefixOp.i32" : "dx.op.waveActiveOp.i32");
+    auto parameters = minimum ? LLVMBC::Vector<LLVMBC::Type*>{word, resultType} : LLVMBC::Vector<LLVMBC::Type*>{word, resultType, byte, byte};
+    auto* signature = context.construct<LLVMBC::FunctionType>(context, resultType, std::move(parameters));
     auto* function = context.construct<LLVMBC::Function>(signature, 119, symbols);
     auto* payload = constantValue ? static_cast<LLVMBC::Value*>(LLVMBC::ConstantInt::get(resultType, *constantValue)) : argument;
-    auto* call = context.construct<LLVMBC::CallInst>(signature, function, LLVMBC::Vector<LLVMBC::Value*>{LLVMBC::ConstantInt::get(word, prefix ? 121 : 119), payload, LLVMBC::ConstantInt::get(byte, 0), LLVMBC::ConstantInt::get(byte, signedness)});
+    LLVMBC::Vector<LLVMBC::Value*> arguments{LLVMBC::ConstantInt::get(word, minimum ? 113 : prefix ? 121 : 119), payload};
+    if (!minimum) {
+        arguments.push_back(LLVMBC::ConstantInt::get(byte, 0));
+        arguments.push_back(LLVMBC::ConstantInt::get(byte, signedness));
+    }
+    auto* call = context.construct<LLVMBC::CallInst>(signature, function, std::move(arguments));
     auto& result = fixture.scalar.Get(*call);
     auto& destination = builder.ShiftLeftLogical(index, builder.Constant(bits == 64 ? 3 : 2));
     auto& resultLow = bits == 64 ? builder.CompositeExtract(result, 0) : result;

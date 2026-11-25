@@ -5,6 +5,7 @@
 
 void CheckIntegerWaveProof(std::span<const std::uint32_t> code, bool prefix);
 void CheckWideWaveGpu(AnyBox::Vulkan::Context& context);
+void CheckWaveMinimum(AnyBox::Vulkan::Context& context);
 
 namespace {
 void Check(AnyBox::Vulkan::Context& context, unsigned waveSize, bool prefix, std::uint32_t mask, bool native, unsigned signedness) {
@@ -63,6 +64,7 @@ void CheckInvalid() {
 void BufferTests::CheckWaveIntegerGpu(AnyBox::Vulkan::Context& context) {
     CheckInvalid();
     CheckWideWaveGpu(context);
+    CheckWaveMinimum(context);
     for (bool prefix : {false, true}) {
         for (bool native : {false, true}) {
             for (auto mask : {UINT32_MAX, 0x80000000U, 0xFFFF0000U, 0xA55A8420U, 1U}) Check(context, 32, prefix, mask, native, 1);
