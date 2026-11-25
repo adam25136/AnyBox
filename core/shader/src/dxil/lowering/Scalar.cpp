@@ -81,10 +81,16 @@ IrValue& ScalarLowering::Get(const LLVMBC::Value& value) {
             if (output) { values.emplace(&value, output); return *output; }
         }
         if (extraction->getNumIndices() != 1) throw std::runtime_error("DXIL nested aggregate extraction is not implemented");
-        auto& aggregate = Get(*extraction->getAggregateOperand());
         auto index = extraction->getIndices()[0];
-        if (!IsVectorType(aggregate.Type()) || index >= ComponentCount(aggregate.Type()) || bits != 32) throw std::runtime_error("DXIL aggregate extraction has an incompatible result type or index");
+        auto* sourceType = extraction->getAggregateOperand()->getType();
+        if (sourceType && sourceType->getTypeID() == LLVMBC::Type::TypeID::StructTyID && (index >= sourceType->getStructNumElements() || sourceType->getStructElementType(index) != extraction->getType())) throw std::runtime_error("DXIL aggregate extraction type differs from its member");
+        auto& aggregate = Get(*extraction->getAggregateOperand());
+        if (!IsVectorType(aggregate.Type()) || index >= ComponentCount(aggregate.Type()) || (bits != 32 && resultType != IrType::F16)) throw std::runtime_error("DXIL aggregate extraction has an incompatible result type or index");
         output = &builder.CompositeExtract(aggregate, index);
+        if (resultType == IrType::F16) {
+            if (output->Type() != IrType::U32) throw std::runtime_error("DXIL packed half extraction requires an integer representation");
+            output = &builder.BitCastF16(*output);
+        }
     } else if (auto* selection = LLVMBC::dyn_cast<LLVMBC::SelectInst>(&value)) {
         if (GetType(*selection->getOperand(0)) != IrType::Bool || GetType(*selection->getOperand(1)) != resultType || GetType(*selection->getOperand(2)) != resultType) throw std::runtime_error("DXIL select operand types do not match");
         auto& condition = Get(*selection->getOperand(0));

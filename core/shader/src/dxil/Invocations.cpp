@@ -8,7 +8,7 @@
 bool AnyBox::Shader::Dxil::IsInvocationLocalIntrinsic(std::string_view name) {
     static constexpr std::array names{
         "dx.op.createHandle", "dx.op.barrier",
-        "dx.op.unary.f32", "dx.op.binary.f32", "dx.op.tertiary.f32",
+        "dx.op.unary.f32", "dx.op.binary.f16", "dx.op.binary.f32", "dx.op.tertiary.f32",
         "dx.op.binary.i32", "dx.op.binary.i64", "dx.op.tertiary.i32", "dx.op.quaternary.i32",
         "dx.op.unary.i32", "dx.op.unary.i64", "dx.op.unaryBits.i32", "dx.op.unaryBits.i64",
         "dx.op.dot2.f32", "dx.op.dot3.f32", "dx.op.dot4.f32",
@@ -23,7 +23,8 @@ bool AnyBox::Shader::Dxil::IsInvocationLocalIntrinsic(std::string_view name) {
         "xbox.global_store_dwordx3_with_cache", "xbox.global_store_dwordx4_with_cache",
         "xbox.global_atomic_fmin", "xbox.global_atomic_fmax", "xbox.global_atomic_add", "xbox.global_atomic_sub",
         "xbox.TypedLoad.i32", "xbox.V_ALIGNBYTE_B32", "xbox.BFI", "xbox.S_BCNT1_U64",
-        "xbox.Min3_F32", "xbox.Max3_F32", "xbox.Med3_F32", "xbox.Min3_U32", "xbox.Max3_U32", "xbox.Med3_U32"
+        "xbox.Min3_F32", "xbox.Max3_F32", "xbox.Med3_F32", "xbox.Min3_U32", "xbox.Max3_U32", "xbox.Med3_U32",
+        "xbox.V_PK_MIN_F16", "xbox.V_PK_MAX_F16"
     };
     return std::ranges::find(names, name) != names.end();
 }

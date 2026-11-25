@@ -12,6 +12,7 @@
 #include "BitCount.hpp"
 #include "FirstLane.hpp"
 #include "HalfPack.hpp"
+#include "HalfExtrema.hpp"
 #include "UnaryInteger.hpp"
 #include "WaveReadLane.hpp"
 #include "WaveMinimum.hpp"
@@ -34,6 +35,8 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     }
     if (identifier == "dx.op.barrier") return barrier(instruction);
     if (identifier == "dx.op.unary.f32") return LowerUnaryFloat(instruction, *this, builder);
+    if (identifier == "dx.op.binary.f16") return LowerHalfExtremum(instruction, *this, builder);
+    if (identifier == "xbox.V_PK_MIN_F16" || identifier == "xbox.V_PK_MAX_F16") return LowerPackedHalfExtremum(instruction, *this, builder, identifier == "xbox.V_PK_MAX_F16");
     if (identifier == "llvm.copysign.f32") return LowerCopySign(instruction, *this, builder);
     if (identifier == "dx.op.legacyF16ToF32") return legacyHalf(instruction);
     if (identifier == "dx.op.legacyF32ToF16") return LowerFloatToHalf(instruction, *this, builder);
