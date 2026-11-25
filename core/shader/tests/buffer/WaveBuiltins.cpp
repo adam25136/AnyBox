@@ -1,5 +1,6 @@
 #include "AtomicKernel.hpp"
 #include "FloatFixture.hpp"
+#include "ComputeCompiler.hpp"
 
 namespace {
 void CheckInvalid(const char* name, unsigned opcode) {
@@ -16,15 +17,15 @@ void CheckInvalid(const char* name, unsigned opcode) {
     reject(word, {fixture.Argument(0)});
 }
 
-void CheckGpu(AnyBox::Vulkan::Context& context, unsigned waveSize, bool count) {
+void CheckGpu(AnyBox::Vulkan::Context& context, unsigned waveSize, unsigned builtin, unsigned threads = 128) {
     using namespace ShaderRecompiler;
     BufferTests::AtomicKernel fixture;
     fixture.program.SetWaveSize(waveSize);
     auto& symbols = fixture.source.Module();
     auto& llvmContext = fixture.source.Context();
     auto* word = LLVMBC::Type::getInt32Ty(llvmContext);
-    auto opcode = count ? 112u : 111u;
-    symbols.add_value_name(111, count ? "dx.op.waveGetLaneCount" : "dx.op.waveGetLaneIndex");
+    auto opcode = builtin == 2 ? 64u : builtin == 1 ? 112u : 111u;
+    symbols.add_value_name(111, builtin == 2 ? "xbox.GetLaneID" : builtin == 1 ? "dx.op.waveGetLaneCount" : "dx.op.waveGetLaneIndex");
     auto* signature = llvmContext.construct<LLVMBC::FunctionType>(llvmContext, word, LLVMBC::Vector<LLVMBC::Type*>{word});
     auto* function = llvmContext.construct<LLVMBC::Function>(signature, 111, symbols);
     auto* call = llvmContext.construct<LLVMBC::CallInst>(signature, function, LLVMBC::Vector<LLVMBC::Value*>{LLVMBC::ConstantInt::get(word, opcode)});
@@ -33,15 +34,16 @@ void CheckGpu(AnyBox::Vulkan::Context& context, unsigned waveSize, bool count) {
     auto& index = fixture.GlobalIndex();
     fixture.Memory(IrOpcode::StoreAddressU32, builder.ShiftLeftLogical(index, builder.Constant(2)), 2, &value);
     (void)builder.Emit(IrOpcode::Return, IrType::Void, {});
+    fixture.program.Metadata().blockInfo[0].terminator.kind = TerminatorKind::Return;
 
     ShaderComputeInputInfo info;
-    info.threadsNum[0] = 128;
+    info.threadsNum[0] = threads;
     info.threadsNum[1] = info.threadsNum[2] = 1;
     info.waveSize = waveSize;
     info.hostSubgroupSize = 32;
-    auto shader = AnyBox::Shader::CompileCompute(fixture.program, info, BufferTests::Target(), {0, 0, 0, 128});
-    std::vector<std::uint32_t> expected(256);
-    for (unsigned thread = 0; thread < expected.size(); ++thread) expected[thread] = count ? waveSize : thread % waveSize;
+    auto shader = AnyBox::Shader::Dxil::CompileCompute(fixture.program, info, BufferTests::Target(), {0, 0, 0, 128});
+    std::vector<std::uint32_t> expected(threads * 2);
+    for (unsigned thread = 0; thread < expected.size(); ++thread) expected[thread] = builtin == 1 ? waveSize : thread % threads % waveSize;
     BufferTests::RunGpu(context, shader, expected, {2, 1, 1});
 }
 }
@@ -49,8 +51,11 @@ void CheckGpu(AnyBox::Vulkan::Context& context, unsigned waveSize, bool count) {
 void BufferTests::CheckWaveBuiltinsGpu(AnyBox::Vulkan::Context& context) {
     CheckInvalid("dx.op.waveGetLaneIndex", 111);
     CheckInvalid("dx.op.waveGetLaneCount", 112);
+    CheckInvalid("xbox.GetLaneID", 64);
     for (auto waveSize : {32u, 64u}) {
-        CheckGpu(context, waveSize, false);
-        CheckGpu(context, waveSize, true);
+        CheckGpu(context, waveSize, 0);
+        CheckGpu(context, waveSize, 1);
+        CheckGpu(context, waveSize, 2);
+        for (unsigned threads : {1u, 33u, 65u, 127u}) CheckGpu(context, waveSize, 2, threads);
     }
 }
