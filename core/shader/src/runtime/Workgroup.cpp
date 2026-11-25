@@ -22,7 +22,7 @@ std::array<std::uint32_t, 3> AnyBox::Shader::Runtime::ReadComputeWorkgroup(const
     }
     if (!found) throw std::runtime_error("Offline compute pipeline requires a literal local size");
     auto expected = artifact.threads;
-    if (artifact.waveSize == 64 && artifact.hostSubgroupSize == 32) {
+    if (artifact.waveSize == 64 && artifact.hostSubgroupSize == 32 && (artifact.executionFlags & NativeComputeInvocations) == 0) {
         auto invocations = expected[0] * expected[1] * expected[2];
         expected = {(invocations + 63) / 64 * 32, 1, 1};
     }

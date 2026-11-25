@@ -3,6 +3,7 @@
 #include "DxilModule.hpp"
 #include "ComputeEntry.hpp"
 #include "ComputeCompiler.hpp"
+#include "Invocations.hpp"
 #include "lowering/Function.hpp"
 #include "arguments/RootBindings.hpp"
 #include <anybox/shader/Requirements.hpp>
@@ -29,6 +30,14 @@ AnyBox::Shader::ComputeArtifact AnyBox::Shader::Tools::CompileDxil(std::span<con
     program.SetWaveSize(input.waveSize);
     Dxil::FunctionLowering(program, resources, bindings).Run(*entry.function);
     input.ldsSizeDwords = program.Info().sharedMemoryBytes / 4;
-    auto result = Dxil::CompileCompute(program, input, AuditTarget(), {0, 0, 0, 128});
-    return MakeArtifact(std::move(result), resources.GetBindings(), input, HashShader(code));
+    auto physical = input;
+    bool independent = input.waveSize == 64 && input.hostSubgroupSize == 32 && Dxil::HasIndependentInvocations(*entry.function);
+    if (independent) {
+        physical.waveSize = input.hostSubgroupSize;
+        program.SetWaveSize(physical.waveSize);
+    }
+    auto result = Dxil::CompileCompute(program, physical, AuditTarget(), {0, 0, 0, 128});
+    auto artifact = MakeArtifact(std::move(result), resources.GetBindings(), input, HashShader(code));
+    if (independent) artifact.executionFlags |= NativeComputeInvocations;
+    return artifact;
 }

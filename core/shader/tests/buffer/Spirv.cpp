@@ -10,6 +10,8 @@
 #include <anybox/vulkan/Context.hpp>
 #include <spirv/unified1/spirv.hpp>
 
+void CheckNativeInvocations(AnyBox::Vulkan::Context& context);
+
 namespace BufferTests {
 void CheckGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::ComputeCompilation& shader, std::uint32_t expected);
 void CheckGlobalConstants(AnyBox::Vulkan::Context& context);
@@ -101,6 +103,7 @@ void BufferTests::CheckSpirv() {
     CheckBallot64(context);
     CheckWave64Control(context);
     CheckWave64Runtime(context);
+    CheckNativeInvocations(context);
     CheckConstants(context);
     CheckBitFields(context);
     CheckUnaryBitsGpu(context);

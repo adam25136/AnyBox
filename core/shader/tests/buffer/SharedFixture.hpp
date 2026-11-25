@@ -2,6 +2,7 @@
 
 #include "../resources/Fixture.hpp"
 #include "lowering/Function.hpp"
+#include "Invocations.hpp"
 #include <optional>
 
 namespace BufferTests {
@@ -66,7 +67,7 @@ public:
         store(output, binary(offset, integer(8), LLVMBC::Instruction::Add), privateLoad);
         emit<LLVMBC::ReturnInst>(nullptr);
     }
-    ShaderRecompiler::IrProgram Lower() {
+    ShaderRecompiler::IrProgram Lower(bool* independent = nullptr) {
         auto& context = source.Context();
         auto* type = context.construct<LLVMBC::FunctionType>(context, LLVMBC::Type::getVoidTy(context), LLVMBC::Vector<LLVMBC::Type*>{});
         auto* function = context.construct<LLVMBC::Function>(type, 1024, source.Module());
@@ -75,6 +76,7 @@ public:
         SharedBindings bindings;
         ShaderRecompiler::IrProgram program;
         AnyBox::Shader::Dxil::FunctionLowering(program, layout, bindings).Run(*function);
+        if (independent) *independent = AnyBox::Shader::Dxil::HasIndependentInvocations(*function);
         return program;
     }
     void InitializeShared() {

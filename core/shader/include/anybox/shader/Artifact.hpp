@@ -6,6 +6,7 @@
 
 namespace AnyBox::Shader {
 using ShaderDigest = std::array<std::byte, 32>;
+inline constexpr std::uint32_t NativeComputeInvocations = 16;
 ShaderDigest HashShader(std::span<const std::byte> data);
 std::string DigestName(const ShaderDigest& digest);
 

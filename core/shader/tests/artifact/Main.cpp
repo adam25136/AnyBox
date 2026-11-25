@@ -79,6 +79,18 @@ void Check() {
         }
     }
     auto invalid = artifact;
+    invalid.waveSize = 64;
+    invalid.executionFlags = NativeComputeInvocations;
+    Require(DecodeComputeArtifact(EncodeComputeArtifact(invalid), digest) == invalid);
+    invalid.hostSubgroupSize = 64;
+    Reject([&] { EncodeComputeArtifact(invalid); });
+    invalid.hostSubgroupSize = 32;
+    invalid.waveSize = 32;
+    Reject([&] { EncodeComputeArtifact(invalid); });
+    invalid.waveSize = 64;
+    invalid.splitStateLanes = 1;
+    Reject([&] { EncodeComputeArtifact(invalid); });
+    invalid = artifact;
     invalid.userRegisters = {0, 0};
     Reject([&] { EncodeComputeArtifact(invalid); });
     invalid = artifact;
