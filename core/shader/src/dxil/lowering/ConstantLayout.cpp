@@ -9,10 +9,11 @@ void LocalLowering::appendConstants(const LLVMBC::Value& value, const LLVMBC::Ty
         words.resize(words.size() + size(type) / 4, 0);
         return;
     }
-    if (type.isIntegerTy() && type.getIntegerBitWidth() == 32) {
+    if (type.isIntegerTy() && (type.getIntegerBitWidth() == 32 || type.getIntegerBitWidth() == 64)) {
         auto* integer = LLVMBC::dyn_cast<LLVMBC::ConstantInt>(&value);
         if (!integer) throw std::runtime_error("DXIL global constant word initializer is not an integer constant");
         words.push_back(static_cast<std::uint32_t>(integer->getUniqueInteger().getZExtValue()));
+        if (type.getIntegerBitWidth() == 64) words.push_back(static_cast<std::uint32_t>(integer->getUniqueInteger().getZExtValue() >> 32));
         return;
     }
     if (type.getTypeID() == LLVMBC::Type::TypeID::FloatTyID) {

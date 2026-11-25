@@ -9,6 +9,7 @@ using AnyBox::Shader::Dxil::LocalLowering;
 LocalLowering::LocalLowering(IrProgram& program, IrBuilder& builder) : program(program), builder(builder) {}
 
 std::uint32_t LocalLowering::size(const LLVMBC::Type& type) {
+    if (type.isIntegerTy() && type.getIntegerBitWidth() == 64) return 8;
     if (type.getTypeID() == LLVMBC::Type::TypeID::FloatTyID || (type.isIntegerTy() && type.getIntegerBitWidth() == 32)) return 4;
     if (type.getTypeID() != LLVMBC::Type::TypeID::ArrayTyID) throw std::runtime_error("DXIL local storage type is not implemented");
     auto count = type.getArrayNumElements();
