@@ -61,6 +61,7 @@ public:
         known.emplace(&value, false);
         if (AnyBox::Shader::Control::IsWaveLocalUniform(value, input)) return known[&value] = true;
         auto opcode = value.Opcode();
+        if (opcode == IrOpcode::ReadLane && value.ArgumentCount() == 2 && Check(*value.Argument(1))) return known[&value] = true;
         if (opcode == IrOpcode::GetUserData || opcode == IrOpcode::ReadFirstLane || opcode == IrOpcode::Ballot) return known[&value] = true;
         if (opcode == IrOpcode::GetBuiltin) {
             bool uniform = value.ArgumentCount() == 2 && value.Argument(0)->HasImmediate() && value.Argument(0)->ImmediateU32() == static_cast<std::uint32_t>(StageInputKind::WorkgroupId) && value.Argument(1)->HasImmediate() && value.Argument(1)->ImmediateU32() < 3;
@@ -83,4 +84,8 @@ void AnyBox::Shader::ValidateWave64Control(const ShaderRecompiler::IrProgram& pr
         if (info.terminator.kind != TerminatorKind::ConditionalBranch || info.terminator.condition != BranchCondition::ScalarInstruction) continue;
         if (!info.condition || !uniform.Check(*info.condition)) throw std::runtime_error("Wave64 per-invocation control flow on a 32-lane subgroup is not implemented");
     }
+}
+
+bool AnyBox::Shader::IsWaveUniform(const IrValue& value, const ShaderComputeInputInfo& input) {
+    return Uniformity(input).Check(value);
 }

@@ -70,17 +70,18 @@ std::optional<std::uint32_t> LocalExpression::evaluate(const IrValue& value) {
 }
 
 bool AnyBox::Shader::Control::IsWaveLocalUniform(const IrValue& expression, const ShaderComputeInputInfo& input) {
+    if (input.waveSize != 32 && input.waveSize != 64) return false;
     std::uint64_t count = 1;
     for (auto size : input.threadsNum) {
         if (size == 0 || size > 1024) return false;
         count *= size;
     }
-    if (count > 1024 || count % 64 != 0) return false;
+    if (count > 1024 || count % input.waveSize != 0) return false;
     std::optional<std::uint32_t> first;
     for (std::uint32_t index = 0; index < count; ++index) {
         auto value = LocalExpression(input, index).Evaluate(expression);
         if (!value) return false;
-        if (index % 64 == 0) first = value;
+        if (index % input.waveSize == 0) first = value;
         else if (value != first) return false;
     }
     return true;

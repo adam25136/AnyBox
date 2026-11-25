@@ -3,7 +3,7 @@
 #include "AtomicKernel.hpp"
 
 namespace BufferTests {
-inline ShaderRecompiler::IrProgram WaveControlKernel(unsigned mode) {
+inline ShaderRecompiler::IrProgram WaveControlKernel(unsigned mode, bool laneRead = false) {
     using namespace ShaderRecompiler;
     AtomicKernel fixture;
     auto& program = fixture.program;
@@ -38,7 +38,7 @@ inline ShaderRecompiler::IrProgram WaveControlKernel(unsigned mode) {
         term.trueBlock = merge.Id();
     };
     builder.SetInsertionPoint(body);
-    auto& first = builder.Emit(IrOpcode::ReadFirstLane, IrType::U32, {&index, &builder.ConstantBool(true)});
+    auto& first = builder.Emit(laneRead ? IrOpcode::ReadLane : IrOpcode::ReadFirstLane, IrType::U32, {&index, laneRead ? &builder.Constant(0) : &builder.ConstantBool(true)});
     finish(body, builder.IAdd(index, first));
     builder.SetInsertionPoint(alternate);
     finish(alternate, builder.BitwiseXor(index, builder.Constant(0xA55A8420)));
