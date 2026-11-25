@@ -8,14 +8,15 @@
 #include <algorithm>
 #include <string_view>
 
-void AnyBox::Graphics::Tests::CheckPreparedDispatch(Device* device) {
+namespace AnyBox::Graphics::Tests {
+static void CheckPreparedDispatchPath(Device* device, bool external) {
     D3D12_FEATURE_DATA_D3D12_OPTIONS4 capabilities{};
     Require(device->GetHost()->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS4, &capabilities, sizeof(capabilities)) == S_OK, "Prepared dispatch capability query failed");
     if (capabilities.Native16BitShaderOpsSupported) return;
     DispatchBuffer buffer(device);
     ComputeFixture fixture(device);
     PreparedCache cache;
-    auto data = MakeDispatchArtifact();
+    auto data = MakeDispatchArtifact(external);
     cache.Save(data.artifact);
     D3D12_COMPUTE_PIPELINE_STATE_DESC description{};
     description.pRootSignature = reinterpret_cast<ID3D12RootSignature*>(fixture.GetRoot());
@@ -79,4 +80,7 @@ void AnyBox::Graphics::Tests::CheckPreparedDispatch(Device* device) {
     catch (const std::runtime_error& error) { fault = std::string_view(error.what()).find("GPU shader fault") != std::string_view::npos; }
     Require(fault && destructors == 1, "Prepared dispatch GPU fault did not unwind the allocator caller");
     Require(Method<decltype(&Device::GetDeviceRemovedReason)>(device, 37)(device) == S_OK, "Contained shader fault removed the native device");
+}
+
+void CheckPreparedDispatch(Device* device) { for (bool external : {false, true}) CheckPreparedDispatchPath(device, external); }
 }

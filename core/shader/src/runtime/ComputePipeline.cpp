@@ -8,9 +8,11 @@ ComputePipeline::ComputePipeline(AnyBox::Vulkan::Context& context, const Compute
     CheckRequirements(context, artifact);
     std::vector<VkDescriptorSetLayoutBinding> bindings;
     for (const auto& descriptor : artifact.descriptors) {
-        if (descriptor.kind != MemoryTableBinding && descriptor.kind != FaultBufferBinding) throw std::runtime_error("Offline compute pipeline descriptor kind is not implemented");
+        if (descriptor.kind != MemoryTableBinding && descriptor.kind != FaultBufferBinding && descriptor.kind != ShaderDataBinding) throw std::runtime_error("Offline compute pipeline descriptor kind is not implemented");
         if (!descriptor.resources.empty()) throw std::runtime_error("Offline compute pipeline BDA descriptor contains unexpected resource indices");
-        bindings.push_back({descriptor.kind, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr});
+        auto type = descriptor.kind == ShaderDataBinding ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        bindings.push_back({descriptor.kind, type, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr});
+        if (descriptor.kind == ShaderDataBinding) shaderDataSize = artifact.memoryOffset * 4;
         descriptorMask |= 1u << (descriptor.kind - MemoryTableBinding);
     }
     try {
@@ -23,7 +25,7 @@ ComputePipeline::ComputePipeline(AnyBox::Vulkan::Context& context, const Compute
             Vulkan::Check(context.GetFunctions().createDescriptorSetLayout(context.GetDevice(), &description, nullptr, &descriptorLayout), "Create offline compute descriptor layout");
             layouts.push_back(descriptorLayout);
         }
-        pipeline = std::make_unique<Vulkan::ComputePipeline>(context, artifact.code, artifact.pushConstantSize, "main", layouts);
+        pipeline = std::make_unique<Vulkan::ComputePipeline>(context, artifact.code, artifact.pushConstantSize, "main", layouts, shaderDataSize ? 1u : 0u);
     } catch (...) {
         if (descriptorLayout) context.GetFunctions().destroyDescriptorSetLayout(context.GetDevice(), descriptorLayout, nullptr);
         throw;

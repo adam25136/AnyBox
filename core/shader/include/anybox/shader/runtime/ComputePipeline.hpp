@@ -8,6 +8,7 @@ class ComputePipeline {
 public:
     static constexpr std::uint32_t MemoryTableBinding = 59;
     static constexpr std::uint32_t FaultBufferBinding = 60;
+    static constexpr std::uint32_t ShaderDataBinding = 62;
     ComputePipeline(Vulkan::Context& context, const ComputeArtifact& artifact);
     ~ComputePipeline();
     ComputePipeline(const ComputePipeline&) = delete;
@@ -16,11 +17,13 @@ public:
     VkDescriptorSetLayout GetDescriptorLayout() const noexcept { return descriptorLayout; }
     Vulkan::Context& GetContext() const noexcept { return context; }
     std::uint32_t GetDescriptorMask() const noexcept { return descriptorMask; }
+    std::uint32_t GetShaderDataSize() const noexcept { return shaderDataSize; }
 
 private:
     Vulkan::Context& context;
     VkDescriptorSetLayout descriptorLayout = VK_NULL_HANDLE;
     std::uint32_t descriptorMask = 0;
+    std::uint32_t shaderDataSize = 0;
     std::unique_ptr<Vulkan::ComputePipeline> pipeline;
 };
 }

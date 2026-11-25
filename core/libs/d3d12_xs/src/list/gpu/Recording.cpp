@@ -1,6 +1,7 @@
 #include "../Gpu.hpp"
 #include "../../allocator/Allocator.hpp"
 #include "Epoch.hpp"
+#include <algorithm>
 
 using namespace AnyBox::Graphics;
 
@@ -22,15 +23,21 @@ void GpuRecording::Dispatch(PipelineState& pipeline, const ComputeState& compute
     const auto& offline = *pipeline.GetOffline();
     const auto& writer = offline.GetArgumentWriter();
     std::array<std::uint32_t, 32> constants{};
+    auto externalSize = offline.GetPipeline().GetShaderDataSize();
+    if (externalSize) {
+        externalArguments.resize(externalSize / 4);
+        std::fill(externalArguments.begin(), externalArguments.end(), 0);
+    }
     resources.Reset();
     if (writer.GetWordCount() != 0) {
-        auto start = offline.GetPushDataStart();
-        if (start > constants.size() || writer.GetWordCount() > constants.size() - start) throw std::runtime_error("Compute root data exceeds the inline push constant capacity");
-        writer.Write(compute.GetArguments(), resources, std::span(constants).subspan(start, writer.GetWordCount()));
+        auto start = externalSize ? 0 : offline.GetPushDataStart();
+        auto destination = externalSize ? std::span(externalArguments) : std::span(constants);
+        if (start > destination.size() || writer.GetWordCount() > destination.size() - start) throw std::runtime_error("Compute root data exceeds its shader data capacity");
+        writer.Write(compute.GetArguments(), resources, destination.subspan(start, writer.GetWordCount()));
     }
     updateMemory();
     auto& binding = epoch->GetBinding(pipeline).binding;
-    binding.Dispatch(record.GetCommands(), std::as_bytes(std::span(constants)).first(offline.GetPushConstantSize()), groups);
+    binding.Dispatch(record.GetCommands(), std::as_bytes(std::span(constants)).first(offline.GetPushConstantSize()), groups, externalSize ? std::as_bytes(std::span(externalArguments)) : std::span<const std::byte>{});
     resources.Reset();
 }
 

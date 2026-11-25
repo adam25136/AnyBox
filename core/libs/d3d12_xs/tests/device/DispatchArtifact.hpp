@@ -8,5 +8,5 @@ struct DispatchArtifact {
     std::vector<std::byte> source;
     Shader::ComputeArtifact artifact;
 };
-DispatchArtifact MakeDispatchArtifact();
+DispatchArtifact MakeDispatchArtifact(bool external = false);
 }

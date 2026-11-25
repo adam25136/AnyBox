@@ -1,10 +1,11 @@
 #include <anybox/vulkan/ComputePipeline.hpp>
 
-AnyBox::Vulkan::ComputePipeline::ComputePipeline(Context& context, std::span<const std::uint32_t> code, std::uint32_t pushConstantSize, const char* entryPoint, std::span<const VkDescriptorSetLayout> descriptorLayouts) : context(context), pushConstantSize(pushConstantSize), descriptorSetCount(static_cast<std::uint32_t>(descriptorLayouts.size())) {
+AnyBox::Vulkan::ComputePipeline::ComputePipeline(Context& context, std::span<const std::uint32_t> code, std::uint32_t pushConstantSize, const char* entryPoint, std::span<const VkDescriptorSetLayout> descriptorLayouts, std::uint32_t dynamicOffsetCount) : context(context), pushConstantSize(pushConstantSize), descriptorSetCount(static_cast<std::uint32_t>(descriptorLayouts.size())), dynamicOffsetCount(dynamicOffsetCount) {
     if (code.size() < 5 || code.front() != 0x07230203 || !entryPoint || *entryPoint == '\0') throw std::invalid_argument("Vulkan compute shader code or entry point is invalid");
     if (pushConstantSize % 4 != 0 || pushConstantSize > context.GetProperties().limits.maxPushConstantsSize) throw std::invalid_argument("Vulkan compute push constant size is invalid");
     if (descriptorLayouts.size() > context.GetProperties().limits.maxBoundDescriptorSets) throw std::invalid_argument("Vulkan compute descriptor set count exceeds the device limit");
     for (auto value : descriptorLayouts) if (!value) throw std::invalid_argument("Vulkan compute descriptor set layout is null");
+    if (dynamicOffsetCount > context.GetProperties().limits.maxDescriptorSetStorageBuffersDynamic + context.GetProperties().limits.maxDescriptorSetUniformBuffersDynamic || (descriptorLayouts.empty() && dynamicOffsetCount != 0)) throw std::invalid_argument("Vulkan compute dynamic descriptor count is invalid");
     const auto& functions = context.GetFunctions();
     VkShaderModule module = VK_NULL_HANDLE;
     try {
@@ -47,9 +48,10 @@ void AnyBox::Vulkan::ComputePipeline::release() noexcept {
     if (layout) functions.destroyPipelineLayout(context.GetDevice(), layout, nullptr);
 }
 
-void AnyBox::Vulkan::ComputePipeline::Dispatch(VkCommandBuffer commands, std::span<const std::byte> constants, const std::array<std::uint32_t, 3>& groups, std::span<const VkDescriptorSet> descriptors) const {
+void AnyBox::Vulkan::ComputePipeline::Dispatch(VkCommandBuffer commands, std::span<const std::byte> constants, const std::array<std::uint32_t, 3>& groups, std::span<const VkDescriptorSet> descriptors, std::span<const std::uint32_t> dynamicOffsets) const {
     if (!commands || constants.size() != pushConstantSize) throw std::invalid_argument("Vulkan compute commands or push constants are invalid");
     if (descriptors.size() != descriptorSetCount) throw std::invalid_argument("Vulkan compute descriptor sets do not match the pipeline layout");
+    if (dynamicOffsets.size() != dynamicOffsetCount) throw std::invalid_argument("Vulkan compute dynamic offsets do not match the pipeline layout");
     for (auto value : descriptors) if (!value) throw std::invalid_argument("Vulkan compute descriptor set is null");
     const auto& limits = context.GetProperties().limits;
     for (std::size_t index = 0; index < groups.size(); ++index) {
@@ -57,7 +59,7 @@ void AnyBox::Vulkan::ComputePipeline::Dispatch(VkCommandBuffer commands, std::sp
     }
     const auto& functions = context.GetFunctions();
     functions.bindPipeline(commands, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-    if (!descriptors.empty()) functions.bindDescriptorSets(commands, VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, descriptorSetCount, descriptors.data(), 0, nullptr);
+    if (!descriptors.empty()) functions.bindDescriptorSets(commands, VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, descriptorSetCount, descriptors.data(), static_cast<std::uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
     if (!constants.empty()) functions.pushConstants(commands, layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstantSize, constants.data());
     functions.dispatch(commands, groups[0], groups[1], groups[2]);
 }

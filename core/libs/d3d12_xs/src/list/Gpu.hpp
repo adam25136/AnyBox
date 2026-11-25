@@ -27,6 +27,7 @@ private:
     Vulkan::CommandRecord record;
     Shader::Runtime::RootResources resources;
     std::shared_ptr<GpuEpoch> epoch;
+    std::vector<std::uint32_t> externalArguments;
     bool failed = false;
 };
 }

@@ -7,6 +7,7 @@
 
 void CheckMemoryTable();
 void CheckComputeBindings(AnyBox::Vulkan::Context& context);
+void CheckExternalShaderData(AnyBox::Vulkan::Context& context);
 
 namespace {
 constexpr auto Source = R"(#version 450
@@ -22,6 +23,7 @@ void Check() {
     CheckMemoryTable();
     Vulkan::Context context(0);
     CheckComputeBindings(context);
+    CheckExternalShaderData(context);
     Shader::ComputeArtifact artifact;
     artifact.sourceHash = Shader::HashShader(std::as_bytes(std::span(Source, std::strlen(Source))));
     artifact.threads = {1, 1, 1};

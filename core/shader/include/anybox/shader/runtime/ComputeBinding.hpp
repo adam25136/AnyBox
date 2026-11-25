@@ -4,19 +4,20 @@
 #include "ComputePipeline.hpp"
 
 namespace AnyBox::Shader::Runtime {
+class ComputeData;
+class ComputeDescriptors;
 class ComputeBinding {
 public:
     ComputeBinding(const ComputePipeline& pipeline, ComputeMemory& memory);
     ~ComputeBinding();
     ComputeBinding(const ComputeBinding&) = delete;
     ComputeBinding& operator=(const ComputeBinding&) = delete;
-    std::span<const VkDescriptorSet> GetSets() const noexcept { return {&set, set ? 1u : 0u}; }
-    void Dispatch(VkCommandBuffer commands, std::span<const std::byte> constants, const std::array<std::uint32_t, 3>& groups) const;
+    std::span<const VkDescriptorSet> GetSets() const noexcept;
+    void Dispatch(VkCommandBuffer commands, std::span<const std::byte> constants, const std::array<std::uint32_t, 3>& groups, std::span<const std::byte> externalData = {}) const;
 
 private:
     const ComputePipeline& pipeline;
-    Vulkan::Context& context;
-    VkDescriptorPool pool = VK_NULL_HANDLE;
-    VkDescriptorSet set = VK_NULL_HANDLE;
+    std::unique_ptr<ComputeData> data;
+    std::unique_ptr<ComputeDescriptors> descriptors;
 };
 }

@@ -32,7 +32,7 @@ void main() {
 )";
 }
 
-AnyBox::Graphics::Tests::DispatchArtifact AnyBox::Graphics::Tests::MakeDispatchArtifact() {
+AnyBox::Graphics::Tests::DispatchArtifact AnyBox::Graphics::Tests::MakeDispatchArtifact(bool external) {
     auto original = CompileComputeShader();
     Container::DxbcView view(original);
     std::vector<Container::Part> parts;
@@ -53,6 +53,15 @@ AnyBox::Graphics::Tests::DispatchArtifact AnyBox::Graphics::Tests::MakeDispatchA
     artifact.userRegisters = {0, 1, 2, 3, 4, 5};
     artifact.descriptors = {{59, {}}, {60, {}}};
     artifact.buffers = {{Shader::ResourceClass::UnorderedAccess, 0, 0, 0, 1, Shader::BufferKind::Raw}, {Shader::ResourceClass::ConstantBuffer, 0, 0, 1, 1, Shader::BufferKind::Constant, 0, 8}};
-    artifact.code = Vulkan::Tests::CompileCompute(Source);
+    std::string shader(Source);
+    if (external) {
+        artifact.pushConstantSize = 0;
+        artifact.pushDataStart = UINT32_MAX;
+        artifact.memoryOffset = 33;
+        artifact.descriptors.push_back({62, {}});
+        auto start = shader.find("layout(push_constant) uniform Parameters");
+        shader.replace(start, std::string_view("layout(push_constant) uniform Parameters").size(), "layout(set=0,binding=62,std430) readonly buffer Parameters");
+    }
+    artifact.code = Vulkan::Tests::CompileCompute(shader.c_str());
     return result;
 }
