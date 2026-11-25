@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
             CheckCommittedTextures(device);
             CheckQueues(device);
             CheckFences(device);
+            CheckQueryHeaps(device);
             CheckAllocators(device);
             CheckLists(device);
             CheckRoots(device);

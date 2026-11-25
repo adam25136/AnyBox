@@ -40,6 +40,7 @@ void CheckAllocation(Device* device);
 void CheckCommittedTextures(Device* device);
 void CheckQueues(Device* device);
 void CheckFences(Device* device);
+void CheckQueryHeaps(Device* device);
 void CheckAllocators(Device* device);
 void CheckLists(Device* device);
 void CheckRoots(Device* device);
