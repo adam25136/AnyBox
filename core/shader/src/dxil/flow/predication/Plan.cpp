@@ -57,7 +57,7 @@ std::size_t AnyBox::Shader::Dxil::Flow::Predication::Run(IrProgram& program, con
     std::size_t changed = 0;
     for (auto* block : program.BlockOrder()) {
         auto plan = Find(program, *block);
-        if (!plan || AnyBox::Shader::IsWaveUniform(*plan->condition, input)) continue;
+        if (!plan || AnyBox::Shader::IsWaveUniform(program, *plan->condition, input)) continue;
         Apply(program, *plan);
         ++changed;
     }

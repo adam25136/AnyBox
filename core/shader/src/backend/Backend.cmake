@@ -1,6 +1,7 @@
 add_library(anybox_compute_shader STATIC src/backend/Compute.cpp)
 target_sources(anybox_compute_shader PRIVATE src/backend/WaveControl.cpp)
 target_sources(anybox_compute_shader PRIVATE src/backend/control/LocalExpression.cpp)
+target_sources(anybox_compute_shader PRIVATE src/backend/control/Arithmetic.cpp src/backend/control/UniformRules.cpp src/backend/control/UniformGraph.cpp)
 target_sources(anybox_compute_shader PRIVATE src/backend/Validation.cpp src/backend/choices/Find.cpp src/backend/choices/Read.cpp src/backend/choices/Plan.cpp)
 target_sources(anybox_compute_shader PRIVATE src/backend/reductions/Graph.cpp src/backend/reductions/Selector.cpp src/backend/reductions/Plan.cpp src/backend/reductions/Rewrite.cpp src/backend/reductions/Optimize.cpp)
 target_sources(anybox_compute_shader PRIVATE src/backend/reductions/Dead.cpp)

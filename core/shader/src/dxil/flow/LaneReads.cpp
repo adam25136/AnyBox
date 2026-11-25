@@ -38,13 +38,13 @@ void AnyBox::Shader::Dxil::Flow::ValidateLaneReads(const IrProgram& program, con
     for (const auto& info : program.Metadata().blockInfo) {
         const auto& term = info.terminator;
         if (term.kind != TerminatorKind::ConditionalBranch) continue;
-        if (term.condition == BranchCondition::ScalarInstruction && info.condition && IsWaveUniform(*info.condition, input)) continue;
+        if (term.condition == BranchCondition::ScalarInstruction && info.condition && IsWaveUniform(program, *info.condition, input)) continue;
         bool returns = Mark(blocks, term.trueBlock, term.mergeBlock, divergent);
         returns |= Mark(blocks, term.falseBlock, term.mergeBlock, divergent);
         if (returns && term.mergeBlock != InvalidControlFlowId) (void)Mark(blocks, term.mergeBlock, InvalidControlFlowId, divergent);
     }
     for (auto* read : reads) {
-        if (read->ArgumentCount() != 2 || !IsWaveUniform(*read->Argument(1), input)) throw std::runtime_error("Xbox read lane requires a wave-uniform selector");
+        if (read->ArgumentCount() != 2 || !IsWaveUniform(program, *read->Argument(1), input)) throw std::runtime_error("Xbox read lane requires a wave-uniform selector");
         if (divergent.contains(read->Parent())) throw std::runtime_error("Xbox read lane from divergent control flow is not implemented");
     }
 }

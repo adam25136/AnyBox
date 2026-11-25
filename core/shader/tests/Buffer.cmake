@@ -23,6 +23,7 @@ target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/ConditionalMask
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/ReadLane.cpp tests/buffer/ReadLaneControl.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/ReadLaneReconvergence.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Predication.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/UniformLoop.cpp tests/buffer/UniformLoopProof.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Ballot.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveControl.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveLocalProof.cpp)
