@@ -17,6 +17,7 @@ target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/IntegerMinMax.c
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/StructuredPhi.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WideStorage.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Uniform.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Ballot.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Wave.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveCount.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WaveBuiltins.cpp)
