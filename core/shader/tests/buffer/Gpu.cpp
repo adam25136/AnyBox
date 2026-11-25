@@ -7,6 +7,7 @@
 #include <anybox/shader/runtime/MemoryTable.hpp>
 #include <BdaAbi.hpp>
 #include <cstring>
+#include <algorithm>
 #include <vector>
 
 namespace BufferTests {
@@ -16,7 +17,7 @@ void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::Comput
     if (!context.SupportsByteStorage()) throw std::runtime_error("DXIL BDA test requires Vulkan byte storage support");
     constexpr auto usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
     constexpr auto properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    auto input = std::make_shared<Buffer>(Buffer::Allocate(context, 64, usage, properties));
+    auto input = std::make_shared<Buffer>(Buffer::Allocate(context, std::max<std::size_t>(64, inputData.size()), usage, properties));
     auto output = std::make_shared<Buffer>(Buffer::Allocate(context, expected.size_bytes(), usage, properties));
     auto faults = Buffer::Allocate(context, Abi::FaultBufferBytes, usage, properties);
     AnyBox::Graphics::Buffers::AddressSpace addresses;
@@ -24,7 +25,7 @@ void RunGpu(AnyBox::Vulkan::Context& context, const AnyBox::Shader::Dxil::Comput
     using AnyBox::Shader::Runtime::MemoryBinding;
     std::array bindings{
         MemoryBinding{addresses.Register(0x100000000, 48, input->GetAddress(), input), Abi::Read},
-        MemoryBinding{addresses.Register(0x100000020, 32, input->GetAddress() + 32, input), Abi::Read},
+        MemoryBinding{addresses.Register(0x100000020, input->GetSize() - 32, input->GetAddress() + 32, input), Abi::Read},
         MemoryBinding{addresses.Register(0x100000010, 16, input->GetAddress() + 16, input), Abi::Read},
         MemoryBinding{addresses.Register(0x200000000, output->GetSize(), output->GetAddress(), output), outputPermissions}
     };
