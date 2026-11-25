@@ -2,6 +2,7 @@ add_library(anybox_dxil_lowering STATIC src/dxil/lowering/Scalar.cpp src/dxil/lo
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/Compile.cpp src/dxil/flow/Plan.cpp src/dxil/flow/Edges.cpp src/dxil/flow/Builder.cpp src/dxil/flow/Constants.cpp src/dxil/flow/Values.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/Function.cpp src/dxil/lowering/Flow.cpp src/dxil/lowering/Phi.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/FlowOrder.cpp)
+target_sources(anybox_dxil_lowering PRIVATE src/dxil/Padding.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/flow/Undefined.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/WideBinary.cpp src/dxil/lowering/WideCompare.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/Intrinsic.cpp)

@@ -2,6 +2,7 @@
 #include "FloatFixture.hpp"
 #include "ComputeCompiler.hpp"
 #include "Fixtures.hpp"
+#include <algorithm>
 
 namespace {
 void Invalid() {
@@ -48,6 +49,25 @@ void CheckGpu(AnyBox::Vulkan::Context& context, unsigned waveSize, std::uint64_t
     }
     BufferTests::RunGpu(context, shader, expected, {2, 1, 1});
 }
+
+void CheckPartial(AnyBox::Vulkan::Context& context, unsigned threads) {
+    auto program = BufferTests::BallotKernel(64, UINT64_MAX);
+    ShaderRecompiler::ShaderComputeInputInfo info;
+    info.threadsNum[0] = threads;
+    info.threadsNum[1] = info.threadsNum[2] = 1;
+    info.waveSize = 64;
+    info.hostSubgroupSize = 32;
+    auto shader = AnyBox::Shader::Dxil::CompileCompute(program, info, BufferTests::Target(), {0, 0, 0, 128});
+    std::vector<std::uint32_t> expected;
+    for (unsigned index = 0; index < threads * 2; ++index) {
+        auto waveStart = index % threads / 64 * 64;
+        auto active = std::min(64u, threads - waveStart);
+        auto ballot = active == 64 ? UINT64_MAX : (std::uint64_t{1} << active) - 1;
+        expected.push_back(static_cast<std::uint32_t>(ballot));
+        expected.push_back(static_cast<std::uint32_t>(ballot >> 32));
+    }
+    BufferTests::RunGpu(context, shader, expected, {2, 1, 1});
+}
 }
 
 namespace BufferTests {
@@ -61,5 +81,6 @@ void CheckBallot64(AnyBox::Vulkan::Context& context) {
     for (std::uint64_t execution : {0ULL, 1ULL, 0x8000000080000000ULL, 0xAAAAAAAA55555555ULL, 0xFFFF00000000FFFFULL}) {
         for (std::uint64_t mask : {0ULL, UINT64_MAX, 0xA55A8420F000000FULL}) CheckGpu(context, 32, mask, execution);
     }
+    for (unsigned threads : {1u, 33u, 65u, 95u, 127u, 128u}) CheckPartial(context, threads);
 }
 }
