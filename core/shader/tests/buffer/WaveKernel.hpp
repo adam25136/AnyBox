@@ -3,7 +3,7 @@
 #include "FloatFixture.hpp"
 
 namespace BufferTests {
-inline ShaderRecompiler::IrProgram MakeWaveKernel(std::uint64_t mask, unsigned waveSize, unsigned operation = 0) {
+inline ShaderRecompiler::IrProgram MakeWaveKernel(std::uint64_t mask, unsigned waveSize, unsigned operation = 0, bool dxilFlow = false) {
     using namespace ShaderRecompiler;
     ResourceTests::Fixture source;
     auto& context = source.Context();
@@ -31,9 +31,11 @@ inline ShaderRecompiler::IrProgram MakeWaveKernel(std::uint64_t mask, unsigned w
     auto& exit = program.CreateBlock();
     program.SetEntryBlock(entry);
     program.BlockOrder() = {&entry, &body, &exit};
-    entry.AddBranch(&body);
-    entry.AddBranch(&exit);
-    body.AddBranch(&exit);
+    if (!dxilFlow) {
+        entry.AddBranch(&body);
+        entry.AddBranch(&exit);
+        body.AddBranch(&exit);
+    }
     auto& metadata = program.Metadata().blockInfo;
     metadata.resize(3);
     for (unsigned index = 0; index < 3; ++index) metadata[index].id = index;
@@ -52,8 +54,9 @@ inline ShaderRecompiler::IrProgram MakeWaveKernel(std::uint64_t mask, unsigned w
     auto& shift = builder.BitwiseAnd(lane, builder.Constant(31));
     auto& active = builder.INotEqual(builder.BitwiseAnd(builder.ShiftRightLogical(selected, shift), builder.Constant(1)), builder.Constant(0));
     metadata[0].condition = &active;
-    (void)builder.Emit(IrOpcode::Reference, IrType::Void, {&active});
+    if (!dxilFlow) (void)builder.Emit(IrOpcode::Reference, IrType::Void, {&active});
     auto& global = builder.Emit(IrOpcode::GetBuiltin, IrType::U32, {&builder.Constant(static_cast<unsigned>(StageInputKind::GlobalInvocationId)), &builder.Constant(0)});
+    if (dxilFlow) builder.BranchConditional(active, body, exit);
     builder.SetInsertionPoint(body);
     AnyBox::Shader::Dxil::ScalarLowering scalar(program, builder);
     if (operation != 0 && !counting) {
@@ -75,6 +78,12 @@ inline ShaderRecompiler::IrProgram MakeWaveKernel(std::uint64_t mask, unsigned w
     memory.addressIsFull = true;
     program.Resources().memoryInfo.push_back(memory);
     (void)builder.Emit(IrOpcode::StoreAddressU32, IrType::Void, {&address, &offset, &builder.Constant(2), &result, &active}, MemoryFlags{static_cast<std::uint32_t>(program.Resources().memoryInfo.size() - 1), 0});
+    if (dxilFlow) {
+        builder.Branch(exit);
+        builder.SetInsertionPoint(exit);
+        metadata[2].terminator.kind = TerminatorKind::Return;
+        (void)builder.Emit(IrOpcode::Return, IrType::Void, {});
+    }
     ValidateProgram(program, true);
     return program;
 }

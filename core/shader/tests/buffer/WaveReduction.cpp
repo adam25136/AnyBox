@@ -1,5 +1,6 @@
 #include "WaveKernel.hpp"
 #include "Fixtures.hpp"
+#include "ComputeCompiler.hpp"
 #include <Recompiler.hpp>
 #include <bit>
 #include <cmath>
@@ -37,7 +38,7 @@ void CheckInstructions(std::span<const std::uint32_t> code, bool native) {
 }
 
 void Check(AnyBox::Vulkan::Context& context, std::uint32_t mask, unsigned operation, bool native) {
-    auto program = BufferTests::MakeWaveKernel(mask, 32, operation);
+    auto program = BufferTests::MakeWaveKernel(mask, 32, operation, true);
     ShaderRecompiler::ShaderComputeInputInfo info;
     info.threadsNum[0] = 32;
     info.threadsNum[1] = info.threadsNum[2] = 1;
@@ -46,7 +47,7 @@ void Check(AnyBox::Vulkan::Context& context, std::uint32_t mask, unsigned operat
     std::vector<std::uint32_t> capabilities(target.supportedCapabilities.begin(), target.supportedCapabilities.end());
     if (native) capabilities.push_back(spv::CapabilityGroupNonUniformArithmetic);
     target.supportedCapabilities = capabilities;
-    auto shader = AnyBox::Shader::CompileCompute(program, info, target, {0, 0, 0, 128});
+    auto shader = AnyBox::Shader::Dxil::CompileCompute(program, info, target, {0, 0, 0, 128});
     CheckInstructions(shader.code, native);
     if (!native && mask == UINT32_MAX) CheckWaveReductionProof(shader.code);
     std::array<std::uint32_t, 16> mixed{0x3F800000, 0xC0000000, 0x3F000000, 0x4B800000, 0, 0x80000000, 0x7F800000, 0xFF800000, 0x7FC12345, 0x7F812345, 1, 0x80000001, 0x007FFFFF, 0x00800000, 0x7F7FFFFF, 0xFF7FFFFF};

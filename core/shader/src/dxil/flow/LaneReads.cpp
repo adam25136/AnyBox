@@ -1,6 +1,8 @@
 #include "LaneReads.hpp"
+#include "ActiveLane.hpp"
 #include "../../backend/WaveControl.hpp"
 #include <IntermediateRepresentation/IrProgram.hpp>
+#include <Optimization/ShaderStageInputInfo.hpp>
 #include <unordered_set>
 #include <unordered_map>
 #include <stdexcept>
@@ -44,6 +46,7 @@ void AnyBox::Shader::Dxil::Flow::ValidateLaneReads(const IrProgram& program, con
         if (returns && term.mergeBlock != InvalidControlFlowId) (void)Mark(blocks, term.mergeBlock, InvalidControlFlowId, divergent);
     }
     for (auto* read : reads) {
+        if (ReadsActiveLane(*read, input.waveSize)) continue;
         if (read->ArgumentCount() != 2 || !IsWaveUniform(program, *read->Argument(1), input)) throw std::runtime_error("Xbox read lane requires a wave-uniform selector");
         if (divergent.contains(read->Parent())) throw std::runtime_error("Xbox read lane from divergent control flow is not implemented");
     }

@@ -1,12 +1,13 @@
 #include "IntegerWaveKernel.hpp"
 #include "FloatFixture.hpp"
 #include "Fixtures.hpp"
+#include "ComputeCompiler.hpp"
 
 void CheckIntegerWaveProof(std::span<const std::uint32_t> code, bool prefix);
 
 namespace {
 void Check(AnyBox::Vulkan::Context& context, unsigned waveSize, bool prefix, std::uint32_t mask, bool native, unsigned signedness) {
-    auto program = BufferTests::MakeIntegerWaveKernel(waveSize, prefix, mask, signedness);
+    auto program = BufferTests::MakeIntegerWaveKernel(waveSize, prefix, mask, signedness, true);
     ShaderRecompiler::ShaderComputeInputInfo info;
     info.threadsNum[0] = waveSize;
     info.threadsNum[1] = info.threadsNum[2] = 1;
@@ -16,7 +17,7 @@ void Check(AnyBox::Vulkan::Context& context, unsigned waveSize, bool prefix, std
     std::vector<std::uint32_t> capabilities(target.supportedCapabilities.begin(), target.supportedCapabilities.end());
     if (native) capabilities.push_back(spv::CapabilityGroupNonUniformArithmetic);
     target.supportedCapabilities = capabilities;
-    auto shader = AnyBox::Shader::CompileCompute(program, info, target, {0, 0, 0, 128});
+    auto shader = AnyBox::Shader::Dxil::CompileCompute(program, info, target, {0, 0, 0, 128});
     unsigned operations = 0;
     unsigned shuffles = 0;
     for (std::size_t offset = 5; offset < shader.code.size(); offset += shader.code[offset] >> 16) {

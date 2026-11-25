@@ -3,7 +3,7 @@
 #include "AtomicKernel.hpp"
 
 namespace BufferTests {
-inline ShaderRecompiler::IrProgram MakeIntegerWaveKernel(unsigned waveSize, bool prefix, std::uint32_t mask, unsigned signedness = 1) {
+inline ShaderRecompiler::IrProgram MakeIntegerWaveKernel(unsigned waveSize, bool prefix, std::uint32_t mask, unsigned signedness = 1, bool dxilFlow = false) {
     using namespace ShaderRecompiler;
     AtomicKernel fixture;
     auto& program = fixture.program;
@@ -16,16 +16,19 @@ inline ShaderRecompiler::IrProgram MakeIntegerWaveKernel(unsigned waveSize, bool
     auto& shift = builder.BitwiseAnd(lane, builder.Constant(31));
     auto& active = builder.INotEqual(builder.BitwiseAnd(builder.ShiftRightLogical(builder.Constant(mask), shift), builder.Constant(1)), builder.Constant(0));
     if (waveSize == 32) {
-        (void)builder.Emit(IrOpcode::Reference, IrType::Void, {&active});
+        if (!dxilFlow) (void)builder.Emit(IrOpcode::Reference, IrType::Void, {&active});
         auto& entry = program.EntryBlock();
         auto& body = program.CreateBlock();
         auto& exit = program.CreateBlock();
         program.BlockOrder() = {&entry, &body, &exit};
         program.Metadata().blockInfo.resize(3);
         for (unsigned id = 0; id < 3; ++id) program.Metadata().blockInfo[id].id = id;
-        entry.AddBranch(&body);
-        entry.AddBranch(&exit);
-        body.AddBranch(&exit);
+        if (dxilFlow) builder.BranchConditional(active, body, exit);
+        else {
+            entry.AddBranch(&body);
+            entry.AddBranch(&exit);
+            body.AddBranch(&exit);
+        }
         auto& info = program.Metadata().blockInfo[0];
         info.condition = &active;
         info.terminator.kind = TerminatorKind::ConditionalBranch;
@@ -49,6 +52,12 @@ inline ShaderRecompiler::IrProgram MakeIntegerWaveKernel(unsigned waveSize, bool
     auto* call = context.construct<LLVMBC::CallInst>(signature, function, LLVMBC::Vector<LLVMBC::Value*>{LLVMBC::ConstantInt::get(word, prefix ? 121 : 119), argument, LLVMBC::ConstantInt::get(byte, 0), LLVMBC::ConstantInt::get(byte, signedness)});
     auto& result = fixture.scalar.Get(*call);
     fixture.Memory(IrOpcode::StoreAddressU32, builder.ShiftLeftLogical(index, builder.Constant(2)), 2, &result);
+    if (dxilFlow && waveSize == 32) {
+        builder.Branch(*program.BlockOrder().back());
+        builder.SetInsertionPoint(*program.BlockOrder().back());
+        program.Metadata().blockInfo.back().terminator.kind = TerminatorKind::Return;
+        (void)builder.Emit(IrOpcode::Return, IrType::Void, {});
+    }
     if (waveSize == 64) (void)builder.Emit(IrOpcode::Return, IrType::Void, {});
     ValidateProgram(program, true);
     return std::move(program);

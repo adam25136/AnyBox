@@ -20,6 +20,7 @@ bool AnyBox::Shader::Control::IsUniformArithmetic(ShaderRecompiler::IrOpcode opc
         case IrOpcode::BitwiseOr32:
         case IrOpcode::BitwiseXor32:
         case IrOpcode::BitwiseNot32:
+        case IrOpcode::FindILsb32:
         case IrOpcode::CompositeConstructU64:
         case IrOpcode::CompositeExtractU64:
         case IrOpcode::CompositeExtractU32x2:

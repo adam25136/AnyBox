@@ -4,6 +4,7 @@
 #include "ComputeCompiler.hpp"
 
 void CheckReadLaneControl(AnyBox::Vulkan::Context& context);
+void CheckActiveLaneProof();
 
 namespace {
 void Invalid() {
@@ -53,6 +54,7 @@ void CheckGpu(AnyBox::Vulkan::Context& context, unsigned wave, unsigned threads,
 namespace BufferTests {
 void CheckReadLane(AnyBox::Vulkan::Context& context) {
     Invalid();
+    CheckActiveLaneProof();
     CheckReadLaneControl(context);
     std::vector<std::uint32_t> selectors;
     for (unsigned lane = 0; lane < 64; ++lane) selectors.push_back(lane);
