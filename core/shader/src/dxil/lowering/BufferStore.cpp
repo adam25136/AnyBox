@@ -13,7 +13,8 @@ void BufferLowering::store(const LLVMBC::CallInst& instruction, unsigned bits, S
     if (mask == 0 || mask > 15 || !std::has_single_bit(alignment)) throw std::runtime_error("DXIL raw buffer store mask or alignment is invalid");
     for (unsigned index = 4; index < 8; ++index) {
         auto* type = instruction.getArgOperand(index)->getType();
-        bool valid = type && (floating ? type->getTypeID() == LLVMBC::Type::TypeID::FloatTyID : type->isIntegerTy() && type->getIntegerBitWidth() == bits);
+        auto floatingType = bits == 16 ? LLVMBC::Type::TypeID::HalfTyID : LLVMBC::Type::TypeID::FloatTyID;
+        bool valid = type && (floating ? type->getTypeID() == floatingType : type->isIntegerTy() && type->getIntegerBitWidth() == bits);
         if (!valid) throw std::runtime_error("DXIL raw buffer store value type is invalid");
     }
     auto access = resolve(instruction, scalar, true);
@@ -21,7 +22,8 @@ void BufferLowering::store(const LLVMBC::CallInst& instruction, unsigned bits, S
         if ((mask & (1u << index)) == 0) continue;
         auto part = component(access, bits, index);
         auto& value = scalar.Get(*instruction.getArgOperand(4 + index));
-        write(part.address, part.active, floating ? builder.BitCastU32(value) : value, bits, access.binding.globallyCoherent);
+        auto& data = floating ? (bits == 16 ? builder.BitCastU32FromF16(value) : builder.BitCastU32(value)) : value;
+        write(part.address, part.active, data, bits, access.binding.globallyCoherent);
     }
 }
 

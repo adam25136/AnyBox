@@ -27,13 +27,13 @@ bool BufferLowering::Emit(const LLVMBC::CallInst& instruction, ScalarLowering& s
         if (!aggregates.contains(&instruction)) constantBuffer(instruction, identifier == "dx.op.cbufferLoadLegacy.i64" ? 64 : 32, scalar, identifier == "dx.op.cbufferLoadLegacy.f32");
         return true;
     }
-    if (identifier == "dx.op.rawBufferLoad.f32") {
-        if (!aggregates.contains(&instruction)) load(instruction, 32, scalar, true);
+    if (identifier == "dx.op.rawBufferLoad.f32" || identifier == "dx.op.rawBufferLoad.f16") {
+        if (!aggregates.contains(&instruction)) load(instruction, identifier.ends_with("f16") ? 16 : 32, scalar, true);
         return true;
     }
-    if (identifier == "dx.op.rawBufferStore.f32") {
+    if (identifier == "dx.op.rawBufferStore.f32" || identifier == "dx.op.rawBufferStore.f16") {
         if (!stores.contains(&instruction)) {
-            store(instruction, 32, scalar, true);
+            store(instruction, identifier.ends_with("f16") ? 16 : 32, scalar, true);
             stores.insert(&instruction);
         }
         return true;

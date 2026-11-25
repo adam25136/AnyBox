@@ -33,12 +33,12 @@ public:
         auto* output = source.Handle(1, 4);
         block->add_instruction(input);
         block->add_instruction(output);
-        auto* element = floating ? LLVMBC::Type::getFloatTy(context) : LLVMBC::Type::getIntTy(context, bits);
+        auto* element = floating ? (bits == 16 ? LLVMBC::Type::getHalfTy(context) : LLVMBC::Type::getFloatTy(context)) : LLVMBC::Type::getIntTy(context, bits);
         auto* word = LLVMBC::Type::getInt32Ty(context);
         auto* result = LLVMBC::StructType::get(context, {element, element, element, element, word}, "result");
         auto payload = bits / 2;
         auto* offset = structured ? static_cast<LLVMBC::Value*>(integer(32, 32 - payload)) : LLVMBC::UndefValue::get(word);
-        auto suffix = floating ? std::string("f32") : "i" + std::to_string(bits);
+        auto suffix = (floating ? "f" : "i") + std::to_string(bits);
         auto* loaded = call("dx.op.rawBufferLoad." + suffix, bits, result, {integer(32, 139), input, integer(32, structured ? 1 : 64 - payload), offset, integer(8, 15), integer(32, bits / 8)});
         std::array<LLVMBC::Value*, 4> values{};
         for (unsigned index = 0; index < 4; ++index) {
@@ -82,12 +82,12 @@ private:
     void store(LLVMBC::Value* handle, unsigned offset, unsigned mask, const std::array<LLVMBC::Value*, 4>& values) {
         auto& context = source.Context();
         auto* word = LLVMBC::Type::getInt32Ty(context);
-        auto* element = floating ? LLVMBC::Type::getFloatTy(context) : LLVMBC::Type::getIntTy(context, bits);
+        auto* element = floating ? (bits == 16 ? LLVMBC::Type::getHalfTy(context) : LLVMBC::Type::getFloatTy(context)) : LLVMBC::Type::getIntTy(context, bits);
         LLVMBC::Vector<LLVMBC::Value*> arguments{integer(32, 140), handle, integer(32, offset), LLVMBC::UndefValue::get(word)};
         for (unsigned index = 0; index < 4; ++index) arguments.push_back(mask & (1u << index) ? values[index] : LLVMBC::UndefValue::get(element));
         arguments.push_back(integer(8, mask));
         arguments.push_back(integer(32, bits / 8));
-        auto suffix = floating ? std::string("f32") : "i" + std::to_string(bits);
+        auto suffix = (floating ? "f" : "i") + std::to_string(bits);
         (void)call("dx.op.rawBufferStore." + suffix, 100 + bits, LLVMBC::Type::getVoidTy(context), std::move(arguments));
     }
     ResourceTests::Fixture source;

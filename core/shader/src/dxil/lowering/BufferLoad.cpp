@@ -17,7 +17,8 @@ void BufferLowering::load(const LLVMBC::CallInst& instruction, unsigned bits, Sc
     if (!result || result->getTypeID() != LLVMBC::Type::TypeID::StructTyID || result->getStructNumElements() != 5) throw std::runtime_error("DXIL raw buffer load result must contain five members");
     for (unsigned index = 0; index < 5; ++index) {
         auto* member = result->getStructElementType(index);
-        bool valid = floating && index < 4 ? member->getTypeID() == LLVMBC::Type::TypeID::FloatTyID : member->isIntegerTy() && member->getIntegerBitWidth() == (index == 4 ? 32 : bits);
+        auto floatingType = bits == 16 ? LLVMBC::Type::TypeID::HalfTyID : LLVMBC::Type::TypeID::FloatTyID;
+        bool valid = floating && index < 4 ? member->getTypeID() == floatingType : member->isIntegerTy() && member->getIntegerBitWidth() == (index == 4 ? 32 : bits);
         if (!valid) throw std::runtime_error("DXIL raw buffer load result member type is invalid");
     }
     auto access = resolve(instruction, scalar, false);
@@ -26,7 +27,7 @@ void BufferLowering::load(const LLVMBC::CallInst& instruction, unsigned bits, Sc
         if ((mask & (1u << component)) == 0) continue;
         auto part = this->component(access, bits, component);
         output[component] = &read(part.address, part.active, bits, access.binding.globallyCoherent);
-        if (floating) output[component] = &builder.BitCastF32(*output[component]);
+        if (floating) output[component] = bits == 16 ? &builder.BitCastF16(*output[component]) : &builder.BitCastF32(*output[component]);
     }
     aggregates.emplace(&instruction, output);
 }
