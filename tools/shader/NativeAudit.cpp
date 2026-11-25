@@ -2,6 +2,7 @@
 #include "AuditTarget.hpp"
 #include <anybox/graphics/container/Native.hpp>
 #include <anybox/graphics/container/Dxil.hpp>
+#include <anybox/graphics/container/NativeBindings.hpp>
 #include <anybox/shader/NativeCompute.hpp>
 #include <anybox/shader/Native.hpp>
 #include <anybox/shader/ComputeCompiler.hpp>
@@ -37,7 +38,16 @@ std::string AnyBox::Shader::Tools::InspectNative(std::span<const std::byte> cont
     for (std::size_t index = 0; index < programs.size(); ++index) {
         Graphics::Container::FssmView view(programs[index]);
         output << "program=" << index << " wave=" << view.GetWaveSize() << " codeBytes=" << view.GetCode().size() << ' ';
-        try { output << Decode(programs[index]); }
+        try {
+            output << Decode(programs[index]);
+            Graphics::Container::DxbcView outer(container);
+            Graphics::Container::DxilView header(outer.FindPart(0x4C495844)->data);
+            if ((header.GetProgramVersion() >> 16) == 5) {
+                auto bindings = Graphics::Container::ReadNativeComputeBindings(programs[index]);
+                output << " roots=" << bindings.roots.size() << " resources=" << bindings.resources.size();
+                for (const auto& root : bindings.roots) output << " root[" << static_cast<unsigned>(root.rootParameter) << "]={kind=" << static_cast<unsigned>(root.kind) << ",register=" << static_cast<unsigned>(root.firstUserRegister) << ",words=" << root.registerCount << '}';
+            }
+        }
         catch (const std::exception& error) { output << "decodeError=" << error.what(); }
         output << '\n';
     }
