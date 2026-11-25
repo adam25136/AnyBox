@@ -13,6 +13,7 @@ namespace AnyBox::Shader {
 struct NativeComputeTranslation {
     ShaderRecompiler::IrProgram program;
     ShaderRecompiler::ShaderComputeInputInfo input;
+    bool rootArgumentsBound = false;
 };
 
 NativeComputeTranslation LowerNativeCompute(const NativeFrontend& frontend, const Graphics::Container::NativeComputeState& state, const ShaderRecompiler::ShaderFloatMode& floatMode, const ShaderRecompiler::SpirvTargetOptions& target);

@@ -6,6 +6,7 @@
 
 void CheckNativeCompute();
 void CheckNativeFloatingProfile();
+void CheckNativeRootArguments();
 void CheckNativeFlow();
 void CheckNativeScratchWrites();
 void CheckNativeImages();
@@ -21,6 +22,7 @@ int main() {
     return AnyBox::Tests::Run([] {
         CheckNativeCompute();
         CheckNativeFloatingProfile();
+        CheckNativeRootArguments();
         CheckNativeFlow();
         CheckNativeScratchWrites();
         CheckNativeImages();

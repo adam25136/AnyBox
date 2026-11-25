@@ -113,6 +113,7 @@ void BufferTests::CheckSpirv() {
     CheckBitFields(context);
     CheckUnaryBitsGpu(context);
     CheckNativeGpu(context);
+    CheckNativeArguments(context);
     CheckNativeFma(context);
     CheckFirstLaneGpu(context);
     CheckBallotLoopGpu(context);
