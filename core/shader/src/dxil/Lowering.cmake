@@ -38,6 +38,7 @@ target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/IntegerExtrema.cpp
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/IntegerMinMax.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/BitSelect.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/MakeUniform.cpp)
+target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/FirstLane.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/Ballot.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/LaneSwizzle.cpp)
 target_sources(anybox_dxil_lowering PRIVATE src/dxil/lowering/ConditionalMask.cpp src/dxil/lowering/vector/Words.cpp)

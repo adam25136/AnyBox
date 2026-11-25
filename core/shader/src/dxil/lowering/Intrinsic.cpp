@@ -10,6 +10,7 @@
 #include "ConditionalMask.hpp"
 #include "ReadLane.hpp"
 #include "BitCount.hpp"
+#include "FirstLane.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -50,6 +51,10 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "xbox.GetLaneID") return waveBuiltin(instruction, 64);
     if (identifier == "xbox.S_BCNT1_U64") return LowerBitCount64(instruction, *this, builder);
     if (identifier == "xbox.MBCNT64") return LowerMaskBitCount64(instruction, *this, builder, program);
+    if (identifier == "dx.op.waveReadLaneFirst.i1") return LowerFirstLane(instruction, *this, builder, program, 1);
+    if (identifier == "dx.op.waveReadLaneFirst.i32") return LowerFirstLane(instruction, *this, builder, program, 32);
+    if (identifier == "dx.op.waveReadLaneFirst.i64") return LowerFirstLane(instruction, *this, builder, program, 64);
+    if (identifier == "dx.op.waveReadLaneFirst.f32") return LowerFirstLane(instruction, *this, builder, program, 32, true);
     if (identifier == "dx.op.dot2.f32") return floatDot(instruction, 2);
     if (identifier == "dx.op.dot3.f32") return floatDot(instruction, 3);
     if (identifier == "dx.op.dot4.f32") return floatDot(instruction, 4);

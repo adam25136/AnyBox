@@ -18,6 +18,7 @@ target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/StructuredPhi.c
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/WideStorage.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/SharedAtomic.cpp tests/buffer/SharedAtomicInvalid.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Uniform.cpp)
+target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/DxilFirstLane.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/Swizzle.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/ConditionalMask.cpp tests/buffer/ConditionalMaskInvalid.cpp)
 target_sources(shader_buffer_lowering_tests PRIVATE tests/buffer/ReadLane.cpp tests/buffer/ReadLaneControl.cpp)
