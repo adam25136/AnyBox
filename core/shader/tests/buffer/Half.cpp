@@ -4,6 +4,8 @@
 #include "Fixtures.hpp"
 #include <Recompiler.hpp>
 
+void CheckHalfPackGpu(AnyBox::Vulkan::Context& context);
+
 namespace {
 using namespace ShaderRecompiler;
 
@@ -85,6 +87,7 @@ void CheckInvalid() {
 
 void BufferTests::CheckLegacyHalfGpu(AnyBox::Vulkan::Context& context) {
     CheckInvalid();
+    CheckHalfPackGpu(context);
     std::vector<std::uint32_t> expected(65536);
     for (unsigned half = 0; half < expected.size(); ++half) expected[half] = Expected(half);
     for (std::uint32_t highBits : {0U, 0xABCD0000U, 0xFFFF0000U}) {

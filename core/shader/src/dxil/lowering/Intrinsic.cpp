@@ -11,6 +11,7 @@
 #include "ReadLane.hpp"
 #include "BitCount.hpp"
 #include "FirstLane.hpp"
+#include "HalfPack.hpp"
 #include <cast.hpp>
 #include <function.hpp>
 #include <string_view>
@@ -31,6 +32,7 @@ IrValue& ScalarLowering::call(const LLVMBC::CallInst& instruction) {
     if (identifier == "dx.op.unary.f32") return LowerUnaryFloat(instruction, *this, builder);
     if (identifier == "llvm.copysign.f32") return LowerCopySign(instruction, *this, builder);
     if (identifier == "dx.op.legacyF16ToF32") return legacyHalf(instruction);
+    if (identifier == "dx.op.legacyF32ToF16") return LowerFloatToHalf(instruction, *this, builder);
     if (identifier == "dx.op.binary.f32") return floatBinaryIntrinsic(instruction);
     if (identifier == "dx.op.binary.i32") return LowerIntegerExtrema(instruction, *this, builder, 32);
     if (identifier == "dx.op.binary.i64") return LowerIntegerExtrema(instruction, *this, builder, 64);
